@@ -36,4 +36,4 @@ Example usage:
 		$ allLines
 		83            # Notice this total is the sum of all previous totals
 		
-The solution given is named allLines(instructor's solution)
+The solution given is named allLines(instructor's solution) inside of dir.
