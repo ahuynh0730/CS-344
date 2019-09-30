@@ -1,0 +1,17 @@
+#!/bin/bash
+
+ttl=0 # global variable
+all(){ # define our function
+    for file in ./* ; do # glob (*) is a wildcard and will return a list of all files matching the pattern
+        if [[ -d "$file" ]]; then # file is a directory
+            cd "$file" # so we change directories to it
+            all # recursively call our function
+            cd .. # move back into the parent directory
+        elif [[ -f "$file" ]]; then # file is a file
+            # The $( ) pattern is called command substitution, google for more information
+            (( ttl+=$(wc -l "$file" | cut -f1 -d " ") )) # Use cut to get only the line count from wc
+        fi
+    done
+}
+all # initial call to our function
+echo "$ttl" # send final result to stdout
