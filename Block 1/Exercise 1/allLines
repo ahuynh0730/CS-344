@@ -3,11 +3,15 @@
 totalLines=0 
 
 #defining function before calling
-allLines(){ 
+lineCount(){ 
     for file in ./* ; do 
-		#if file is a directory
-        if [[ -d "$file" ]]; then # file is a directory
-			echo "$file is a directory"
+		# if file is a directory, will change to that directory
+		# and call allLines on that directory, then go back to parent directory
+        if [[ -d "$file" ]]; then 
+			cd "$file"
+			lineCount
+			cd ..
+			
 		
 		# if file is a file
         elif [[ -f "$file" ]]; then 
@@ -16,11 +20,11 @@ allLines(){
 			if [ "$file" == "./allLines" ]; then
 				echo "$file will not be counted"
 			else
-				echo "$file is a file"
+				echo "$file"
 			fi
         fi
     done
 }
 
-allLines
+lineCount
 echo "$totalLines" 
