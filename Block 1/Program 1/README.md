@@ -1,39 +1,14 @@
-# Exercise 1
-I've prepared an exercise for you all. It's intended to target tools and techniques you'll need for program 1. This is not a required assignment and is not worth any points.
+# Program 1 – CS 344
+This assignment asks you to write bash shell scripts to compute matrix operations. The purpose is to get you familiar with the Unix shell, shell programming, Unix utilities, standard input, output, and error, pipelines, process ids, exit values, and signals (at a basic level).
 
-# Overview
-This exercise asks you to write a bash shell script that counts the number of lines of all files in the current directory and any subdirectories.
+What you're going to submit is your script, called simply "matrix".
 
-# Specifications
-Suggested tools: wc, ls, cd, for loops, if statements
-Many programs, such as cp, have a -r recursive option. You will be creating a very specialized version of that option for wc. Your script should add the lines of all files in the current directory. If any of these files are directories, it should also add the lines of any files in those directories, and then any directores in there, and so on and so forth. Finally, your program should send this result to stdout. This is generally a recursive process. You could try to implement a queue or stack in bash, but I would not recommend it. You should not use any of the tools banned in program 1.
-I've provided a directory set up you can use for testing. (It is named dir.)
+## Overview
+In this assignment, you will write a bash shell script that calculates basic matrix operations using input from either a file or stdin. The input will be whole number values separated by tabs into a rectangular matrix. Your script should be able to print the dimensions of a matrix, transpose a matrix, calculate the mean vector of a matrix, add two matrices, and multiply two matrices.
 
-Example usage(using instructor given solution, mine is slightly different):
+You will be using bash builtins and Unix utilities to complete the assignment. Some commands to read up on are while, cat, read, expr, cut, head, tail, wc, and sort.
 
-		$ wc -l *
-		wc: dir1: Is a directory
-			0 dir1
-		wc: dir2: Is a directory
-			0 dir2
-		wc: dir4: Is a directory
-			0 dir4
-			8 file1
-		 	11 file2
-		 	13 file3
-		 	32 total
-		$ wc -l dir1/*
-		wc: dir1/dir3: Is a directory
-			0 dir1/dir3
-			11 dir1/file4
-			11 total
-		$ wc -l dir2/*
-			 15 dir2/file5
-			 12 dir2/file7
-			 27 total
-		$ wc -l dir1/dir3/*
-		13 dir1/dir3/file6
-		$ allLines
-		83            # Notice this total is the sum of all previous totals
-		
-The solution given is named allLines(instructor's solution) inside of dir.
+Your script must be called simply "matrix". The general format of the matrix command is:
+	matrix OPERATION [ARGUMENT]...
+Refer to man(1) (You can do this with the command `man 1 man`) for an explanation of the conventional notation regarding command syntax, to understand the line above. Note that many terminals render italic font style as an underline:
+	matrix OPERATION [ARGUMENT]...
