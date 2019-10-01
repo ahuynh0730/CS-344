@@ -1,1 +1,17 @@
 #!/bin/bash
+
+totalLines=0 # global variable
+allLines(){ # define our function
+    for file in ./* ; do 
+		#if file is a directory
+        if [[ -d "$file" ]]; then # file is a directory
+			echo "$file is a directory"
+		
+		# if file is a file
+        elif [[ -f "$file" ]]; then 
+			echo "$file is a file"
+        fi
+    done
+}
+allLines
+echo "$totalLines" # send final result to stdout
