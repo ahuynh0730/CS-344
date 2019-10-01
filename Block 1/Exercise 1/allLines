@@ -1,7 +1,9 @@
 #!/bin/bash
 
-totalLines=0 # global variable
-allLines(){ # define our function
+totalLines=0 
+
+#defining function before calling
+allLines(){ 
     for file in ./* ; do 
 		#if file is a directory
         if [[ -d "$file" ]]; then # file is a directory
@@ -9,9 +11,16 @@ allLines(){ # define our function
 		
 		# if file is a file
         elif [[ -f "$file" ]]; then 
-			echo "$file is a file"
+			
+			#will not count lines in this file
+			if [ "$file" == "./allLines" ]; then
+				echo "$file will not be counted"
+			else
+				echo "$file is a file"
+			fi
         fi
     done
 }
+
 allLines
-echo "$totalLines" # send final result to stdout
+echo "$totalLines" 
