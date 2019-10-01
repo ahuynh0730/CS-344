@@ -1,6 +1,7 @@
 #!/bin/bash
 
 totalLines=0 
+linesInFile=0
 
 #defining function before calling
 lineCount(){ 
@@ -15,16 +16,19 @@ lineCount(){
 		
 		# if file is a file
         elif [[ -f "$file" ]]; then 
+			((linesInFile = $(wc -l "$file" | cut -f1 -d " ")))
 			
-			#will not count lines in this file
+			#will not count lines in this script
 			if [ "$file" == "./allLines" ]; then
-				echo "$file will not be counted"
+				echo "The $linesInFile lines in this script will not be counted."
+			
+			#will add number of lines in file to totalLines
 			else
-				echo "$file"
+				totalLines=`expr $linesInFile + $totalLines`
 			fi
         fi
     done
 }
 
 lineCount
-echo "$totalLines" 
+echo "$totalLines lines are in this directory." 
