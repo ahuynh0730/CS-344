@@ -1,6 +1,6 @@
 #!/bin/bash
 
-totalLines=0 
+totalLines=0
 linesInFile=0
 
 #defining function before calling
@@ -16,6 +16,8 @@ lineCount(){
 		
 		# if file is a file
         elif [[ -f "$file" ]]; then 
+			
+			#gets number of lines in file and puts in linesInFile variable
 			((linesInFile = $(wc -l "$file" | cut -f1 -d " ")))
 			
 			#will not count lines in this script
