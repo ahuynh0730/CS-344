@@ -13,6 +13,12 @@ if [ $1 = "dims" ]; then
 		exit 1
 	fi
 	
-
+	# if second argument was an invalid file
+	if [[ ! -f "$2" ]]; then
+		echo "Not a valid file" 1>$2
+		exit 1
+	fi
+	
+	# will call dims if amount of arguements was correct and second argument was a valid file
 	dims
 fi
