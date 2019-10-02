@@ -1,3 +1,18 @@
 #!/bin/bash
 
+dims(){
+	echo "called matrix dims"
+}
 
+
+if [ $1 = "dims" ]; then
+	
+	# if too many arguments were inserted
+	if [ $# -ge 3 ]; then
+		echo "Too many arguments" 1>$2
+		exit 1
+	fi
+	
+
+	dims
+fi
