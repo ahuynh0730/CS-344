@@ -1,5 +1,6 @@
 #!/bin/bash
 
+# echos number of rows followed by a space and number of columns
 dims(){
 	numberRows=0;
 	numberColumns=0;
@@ -19,11 +20,15 @@ dims(){
 		
 	
 	done < $1
+	
+	#divides numberColumns(currently total count of all numbers) by numberRows to get numberColumns
 	numberColumns=`expr $numberColumns / $numberRows`
 	echo "$numberRows $numberColumns"
 }
 
 
+
+# if first argument is dims
 if [ $1 = "dims" ]; then
 	
 	# if too many arguments were inserted
