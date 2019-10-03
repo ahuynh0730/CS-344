@@ -1,7 +1,26 @@
 #!/bin/bash
 
 dims(){
-	echo "called matrix dims"
+	numberRows=0;
+	numberColumns=0;
+	while read myLine
+	do
+		# will increment numberRows by 1 each time a new line is detected
+		numberRows=`expr $numberRows + 1`
+		
+		# will count total number of elements and then divide by number of rows to get number of columns
+		for i in $myLine
+		do
+			numberColumns=`expr $numberColumns + 1`
+			if [ $i = "$" ]; then
+				echo "end of line"
+			fi
+		done	
+		
+	
+	done < $1
+	numberColumns=`expr $numberColumns / $numberRows`
+	echo "$numberRows $numberColumns"
 }
 
 
@@ -9,16 +28,16 @@ if [ $1 = "dims" ]; then
 	
 	# if too many arguments were inserted
 	if [ $# -ge 3 ]; then
-		echo "Too many arguments" 1>$2
+		echo "Too many arguments" 1>&2
 		exit 1
 	fi
 	
 	# if second argument was an invalid file
 	if [[ ! -f "$2" ]]; then
-		echo "Not a valid file" 1>$2
+		echo "Not a valid file" 1>&2
 		exit 1
 	fi
 	
 	# will call dims if amount of arguements was correct and second argument was a valid file
-	dims
+	dims $2
 fi
