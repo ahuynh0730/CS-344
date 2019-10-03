@@ -13,9 +13,6 @@ dims(){
 		for i in $myLine
 		do
 			numberColumns=`expr $numberColumns + 1`
-			if [ $i = "$" ]; then
-				echo "end of line"
-			fi
 		done	
 		
 	
@@ -26,13 +23,15 @@ dims(){
 	echo "$numberRows $numberColumns"
 }
 
-
+transpose(){
+	echo "transpose called with $1"
+}
 
 # if first argument is dims
 if [ $1 = "dims" ]; then
 	
 	# if too many arguments were inserted
-	if [ $# -ge 3 ]; then
+	if [ $# -ne 2 ]; then
 		echo "Too many arguments" 1>&2
 		exit 1
 	fi
@@ -46,3 +45,5 @@ if [ $1 = "dims" ]; then
 	# will call dims if amount of arguements was correct and second argument was a valid file
 	dims $2
 fi
+
+
