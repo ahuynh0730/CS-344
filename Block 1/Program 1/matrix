@@ -1,5 +1,12 @@
 #!/bin/bash
 
+datafilepath="datafile$$"
+if [ $# = 1 ]; then
+	cat > "$datafilepath"
+elif [ $# = 2 ]; then
+	datafilepath=$2
+fi
+
 # echos number of rows followed by a space and number of columns
 dims(){
 	numberRows=0;
@@ -31,19 +38,25 @@ transpose(){
 if [ $1 = "dims" ]; then
 	
 	# if too many arguments were inserted
-	if [ $# -ne 2 ]; then
+	if [ $# -gt 2 ]; then
 		echo "Too many arguments" 1>&2
 		exit 1
 	fi
 	
 	# if second argument was an invalid file
-	if [[ ! -f "$2" ]]; then
+	if [[ ! -f "$datafilepath" ]]; then
 		echo "Not a valid file" 1>&2
 		exit 1
 	fi
 	
+	# if file cannot be read
+	if [[ ! -r "$datafilepath" ]]; then
+		echo "File could not be read" 1>&2
+		exit 1
+	fi
+	
 	# will call dims if amount of arguements was correct and second argument was a valid file
-	dims $2
+	dims $datafilepath
 fi
 
 
