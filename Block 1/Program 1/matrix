@@ -57,6 +57,29 @@ if [ $1 = "dims" ]; then
 	
 	# will call dims if amount of arguements was correct and second argument was a valid file
 	dims $datafilepath
+
+elif [ $1 = "transpose" ]; then
+
+	# if too many arguments were inserted
+	if [ $# -gt 2 ]; then
+		echo "Too many arguments" 1>&2
+		exit 1
+	fi
+	
+	# if second argument was an invalid file
+	if [[ ! -f "$datafilepath" ]]; then
+		echo "Not a valid file" 1>&2
+		exit 1
+	fi
+	
+	# if file cannot be read
+	if [[ ! -r "$datafilepath" ]]; then
+		echo "File could not be read" 1>&2
+		exit 1
+	fi
+
 fi
+
+
 
 
