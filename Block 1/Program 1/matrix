@@ -33,6 +33,7 @@ dims(){
 	numberColumns=`expr $numberColumns / $numberRows`
 }
 
+# transposes a matrix
 transpose(){
 	# cut starts from 1, so have to offset
 	column=1
@@ -57,11 +58,15 @@ transpose(){
 		newMatrix+="$newLine"
 		column=`expr $column + 1`
 	done
-	echo -e "$newMatrix"
 }
 
-# if first argument is dims
-if [ $1 = "dims" ]; then
+# determines the mean of each column of column of a matrix
+mean(){
+	echo "made it here"
+}
+
+# if first argument is dims or transpose or mean
+if [ $1 = "dims" ] || [ $1 = "transpose" ] || [ $1 = "mean" ]; then
 	
 	# if too many arguments were inserted
 	if [ $# -gt 2 ]; then
@@ -83,31 +88,22 @@ if [ $1 = "dims" ]; then
 	
 	# will call dims if amount of arguments was correct and second argument was a valid file
 	dims $datafilepath
-	echo "$numberRows $numberColumns"
+	
+	# if first argument is dims, then will echo dimensions out
+	if [ $1 = "dims" ]; then
+		echo "$numberRows $numberColumns"
+		exit 0
+	fi
 
-elif [ $1 = "transpose" ]; then
-
-	# if too many arguments were inserted
-	if [ $# -gt 2 ]; then
-		echo "Too many arguments" 1>&2
-		exit 1
-	fi
 	
-	# if second argument was an invalid file
-	if [[ ! -f "$datafilepath" ]]; then
-		echo "Not a valid file" 1>&2
-		exit 1
-	fi
-	
-	# if file cannot be read
-	if [[ ! -r "$datafilepath" ]]; then
-		echo "File could not be read" 1>&2
-		exit 1
-	fi
-	
-	#will call transpose if all requirements are met
-	dims $datafilepath
+	# will transpose matrix and echo out if first argument was transpose
 	transpose $datafilepath
+	if [ $1 = "transpose" ]; then
+		echo -e "$newMatrix"
+		exit 0
+	fi
+	
+	
 
 fi
 
