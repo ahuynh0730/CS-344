@@ -7,7 +7,7 @@ newLine=""
 newMatrix=""
 lineNum=1
 
-# echos number of rows followed by a space and number of columns
+# echos number of rows followed by a space and number of columns, will not reset global variables
 dims(){
 
 	while read myLine
@@ -202,10 +202,8 @@ if [ $1 = "dims" ] || [ $1 = "transpose" ] || [ $1 = "mean" ]; then
 
 
 # if first argument is add
-elif [ $1 = "add" ]; then
+elif [ $1 = "add" ] || [ $1 = "multiply" ]; then
 
-	m1dimensions=""
-	m2dimensions=""
 	
 	# if the wrong number of arguments were inserted
 	if [ $# -ne 3 ]; then
@@ -219,22 +217,56 @@ elif [ $1 = "add" ]; then
 		exit 1
 	fi
 	
-	# gets dimensions of both files to compare them
-	dims $2
-	m1dimensions+="$numberRows $numberColumns"
-	numberRows=0
-	numberColumns=0
-	dims $3
-	m2dimensions+="$numberRows $numberColumns"
-	
-	if [ "$m1dimensions" != "$m2dimensions" ]; then
-		echo "File dimensions did not match" 1>&2
-		exit 1
+	# if first argument is add
+	if [ $1 = "add" ]; then
+		m1dimensions=""
+		m2dimensions=""
+		
+		# gets dimensions of both files to compare them
+		dims $2
+		m1dimensions+="$numberRows $numberColumns"
+		numberRows=0
+		numberColumns=0
+		dims $3
+		m2dimensions+="$numberRows $numberColumns"
+		
+		if [ "$m1dimensions" != "$m2dimensions" ]; then
+			echo "File dimensions did not match" 1>&2
+			exit 1
+		fi
+		
+		add $2 $3
 	fi
-	
-	add $2 $3
+
+
+	#if first argument is multiply
+	if [ $1 = "multiply" ]; then
+		m1columns=0
+		m2rows=0
+		
+		#gets dimensions of both files to compare
+		dims $2
+		m1columns=$numberColumns
+		numberRows=0
+		numberColumns=0
+		dims $3
+		m2rows=$numberRows
+		
+		if [ $m1columns -ne $m2rows ]; then
+			echo "Incorrect file dimensions" 1>&2
+			exit 1
+		fi
+		
+	fi
+
+#any other commands other than those possible
+else
+	echo "Invalid command" 1>&2
+	exit 1
 
 fi
+
+
 
 
 
