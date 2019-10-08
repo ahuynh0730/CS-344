@@ -73,6 +73,7 @@ mean(){
 		count=0	
 		average=0
 		
+		# sums up each line and increases count by one on every number
 		for i in $fileLine
 		do
 			num=$i
@@ -80,15 +81,17 @@ mean(){
 			count=`expr $count + 1`
 		done
 		
+		#calculates average
+		average=$(( ($sum + ($count/2)*( ($sum>0)*2-1 )) / $count ))
+		
 		# will insert tab before the average unless it is the average of the first column
 		if [ $lineNum -ne 1 ]; then
 			columnAverages+="\t"
 		fi
 		
-		average=$(( ($sum + ($count/2)*( ($sum>0)*2-1 )) / $count ))
 		
+		# concatenates newly calculated average with other column averages
 		columnAverages+=$average
-		lineNum=`expr $lineNum + 1`
 	done < $1
 	echo -e "$columnAverages"
 }
@@ -131,6 +134,7 @@ if [ $1 = "dims" ] || [ $1 = "transpose" ] || [ $1 = "mean" ]; then
 		exit 0
 	fi
 	
+	# puts transposed matrix in a new file to use for mean and then removes it
 	echo -e "$newMatrix" > tempMatrix89574
 	mean tempMatrix89574
 	rm tempMatrix89574
