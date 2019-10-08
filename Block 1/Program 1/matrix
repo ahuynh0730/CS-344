@@ -85,7 +85,9 @@ mean(){
 			columnAverages+="\t"
 		fi
 		
-		columnAverages+=$sum
+		average=$(( ($sum + ($count/2)*( ($sum>0)*2-1 )) / $count ))
+		
+		columnAverages+=$average
 		lineNum=`expr $lineNum + 1`
 	done < $1
 	echo -e "$columnAverages"
