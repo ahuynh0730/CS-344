@@ -92,18 +92,62 @@ mean(){
 	echo -e "$columnAverages"
 }
 
+
+# adds two matrices together
 add(){
+	newMatrix=""
+	currentRow=0
+	currentColumn=0
+	
+	# making temp files for each file as a single column
 	while read -u 3 left && read -u 4 right
 	do
-		sum=0
-		for i in $left $right
+		for i in $left 
 		do
-			sum=`expr $sum + $i`
-			echo "$sum"
+			echo -e "$i" >> tempLeftFile
+		done
+		
+		for i in $right
+		do
+			echo -e "$i" >> tempRightFile
 		done
 
 	done 3< $1 4< $2
 
+	# sums up each line of the temp files
+	while read -u 3 left && read -u 4 right
+	do
+		sum=0
+		for i in $left
+		do
+			sum=`expr $sum + $left + $right`
+			
+			#inserts tab before field if not first column
+			if [ $currentColumn -ne 0 ]; then
+				newMatrix+="\t"
+			fi
+			
+			newMatrix+="$sum"
+			currentColumn=`expr $currentColumn + 1`
+			
+			# will start a new row if the current column equals the number of columns
+			if [ $currentColumn -eq $numberColumns ]; then
+				currentRow=`expr $currentRow + 1`
+				currentColumn=0
+				if [ $currentRow -ne $numberRows ]; then
+					newMatrix+="\n"
+				fi
+			fi
+		done
+	done 3<tempLeftFile 4<tempRightFile
+	
+	# removing temp files
+	rm tempLeftFile
+	rm tempRightFile
+	
+	# echos out matrix after addition
+	echo -e "$newMatrix"
+	
 }
 
 # if first argument is dims or transpose or mean
