@@ -11,6 +11,7 @@ numberRows=0
 numberColumns=0
 newLine=""
 newMatrix=""
+lineNum=1
 
 # echos number of rows followed by a space and number of columns
 dims(){
@@ -61,8 +62,33 @@ transpose(){
 }
 
 # determines the mean of each column of column of a matrix
+# calculates the mean by taking the transpose of the matrix and sums across the rows then
+# divides by how many items there are
 mean(){
-	echo "made it here"
+
+	columnAverages=""
+	while read fileLine
+	do
+		sum=0
+		count=0	
+		average=0
+		
+		for i in $fileLine
+		do
+			num=$i
+			sum=`expr $sum + $num`
+			count=`expr $count + 1`
+		done
+		
+		# will insert tab before the average unless it is the average of the first column
+		if [ $lineNum -ne 1 ]; then
+			columnAverages+="\t"
+		fi
+		
+		columnAverages+=$sum
+		lineNum=`expr $lineNum + 1`
+	done < $1
+	echo -e "$columnAverages"
 }
 
 # if first argument is dims or transpose or mean
@@ -103,7 +129,9 @@ if [ $1 = "dims" ] || [ $1 = "transpose" ] || [ $1 = "mean" ]; then
 		exit 0
 	fi
 	
-	
+	echo -e "$newMatrix" > tempMatrix89574
+	mean tempMatrix89574
+	rm tempMatrix89574
 
 fi
 
