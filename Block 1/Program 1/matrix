@@ -1,11 +1,5 @@
 #!/bin/bash
 
-datafilepath="datafile$$"
-if [ $# = 1 ]; then
-	cat > "$datafilepath"
-elif [ $# = 2 ]; then
-	datafilepath=$2
-fi
 
 numberRows=0
 numberColumns=0
@@ -90,14 +84,37 @@ mean(){
 		fi
 		
 		
-		# concatenates newly calculated average with other column averages
+		# concatenates newly calculated average with other column averages and increments lineNum
 		columnAverages+=$average
+		lineNum=`expr $lineNum + 1`
+		
 	done < $1
 	echo -e "$columnAverages"
 }
 
+add(){
+	while read -u 3 left && read -u 4 right
+	do
+		sum=0
+		for i in $left $right
+		do
+			sum=`expr $sum + $i`
+			echo "$sum"
+		done
+
+	done 3< $1 4< $2
+
+}
+
 # if first argument is dims or transpose or mean
 if [ $1 = "dims" ] || [ $1 = "transpose" ] || [ $1 = "mean" ]; then
+	
+	datafilepath="datafile$$"
+	if [ $# = 1 ]; then
+		cat > "$datafilepath"
+	elif [ $# = 2 ]; then
+		datafilepath=$2
+	fi
 	
 	# if too many arguments were inserted
 	if [ $# -gt 2 ]; then
@@ -138,6 +155,40 @@ if [ $1 = "dims" ] || [ $1 = "transpose" ] || [ $1 = "mean" ]; then
 	echo -e "$newMatrix" > tempMatrix89574
 	mean tempMatrix89574
 	rm tempMatrix89574
+
+
+# if first argument is add
+elif [ $1 = "add" ]; then
+
+	m1dimensions=""
+	m2dimensions=""
+	
+	# if the wrong number of arguments were inserted
+	if [ $# -ne 3 ]; then
+		echo "Wrong number of arguments" 1>&2
+		exit 1
+	fi
+	
+	# if either file cannot be read
+	if [[ ! -r "$2" ]] || [[ ! -r "$3" ]]; then
+		echo "File could not be read" 1>&2
+		exit 1
+	fi
+	
+	# gets dimensions of both files to compare them
+	dims $2
+	m1dimensions+="$numberRows $numberColumns"
+	numberRows=0
+	numberColumns=0
+	dims $3
+	m2dimensions+="$numberRows $numberColumns"
+	
+	if [ "$m1dimensions" != "$m2dimensions" ]; then
+		echo "File dimensions did not match" 1>&2
+		exit 1
+	fi
+	
+	add $2 $3
 
 fi
 
