@@ -32,7 +32,6 @@ dims(){
 transpose(){
 	# cut starts from 1, so have to offset
 	column=1
-	
 	#loops through each column
 	while [ $column -lt `expr $numberColumns + 1` ]
 	do
@@ -40,8 +39,8 @@ transpose(){
 		#cuts each column into newLine then replaces all \n with \t to make one row
 		newLine=`cut -f $column $datafilepath`
 		newLine=$(echo "$newLine" | tr '\n' '\t')
-		
-		# removing the trailing \the
+				
+		# removing the trailing \t
 		newLine=${newLine%?}
 		
 		# starts a new line if it is not the first line
@@ -150,6 +149,116 @@ add(){
 	
 }
 
+# multiplies two matrices together
+multiply(){
+	sum=0
+	product=0
+	newLeft=""
+	newRight=""
+	
+	# reads in left file and creates a single column 
+	while read -u 3 left
+	do
+		newLine=""
+		currentColumn=0
+		for i in $left 
+		do
+			newLine+="$i"
+			newLine+="\n"
+		done
+		
+		while [ $currentColumn -lt $m2columns ]
+		do
+			currentColumn=`expr $currentColumn + 1`
+			newLeft+=$newLine
+		done
+		
+	done 3< $1
+	
+	# removing the trailing \n
+	newLeft=${newLeft%?}
+	newLeft=${newLeft%?}
+	
+	# writes newLeft variable to tempLeftFile
+	for i in $newLeft
+	do
+		echo -e "$i" > tempLeftFile
+	done
+	
+	# makes new right into a single column
+	newLine=""
+	while read -u 4 right
+	do
+		for i in $right
+		do
+			newLine+="$i"
+			newLine+="\n"
+		done
+	done 4< $2
+	
+	# appends newRight however many times necessary to currentRow
+	currentRow=0
+	while [ $currentRow -lt $m1rows ]
+	do
+		currentRow=`expr $currentRow + 1`
+		newRight+=$newLine
+	done
+	
+	# removes extra new lines
+	newRight=${newRight%?}
+	newRight=${newRight%?}
+	
+	# writes to tempRightFile
+	for i in $newRight
+	do
+		echo -e "$i" >> tempRightFile
+	done
+	
+	multCount=0
+	product=0
+	sum=0
+	newMatrix=""
+	currentColumn=1
+	
+	# reads in tempLeftFile and #tempRightFile
+	while read -u 3 left && read -u 4 right
+	do
+		for i in $left
+		do
+			# product is left times right, sum is previous sum plus product
+			product=`expr $left '*' $right`
+			sum=`expr $sum + $product`
+			multCount=`expr $multCount + 1`
+			
+			# if number of times multiplied is equal to m1columns, will add the sum to new matrix
+			# and insert a tab or line, then reset sum to 0
+			if [ $multCount -eq $m1columns ]; then
+				newMatrix+=$sum
+				if [ $currentColumn -eq $m2columns ]; then
+					newMatrix+="\n"
+					currentColumn=1
+				else
+					newMatrix+="\t"
+					currentColumn=`expr $currentColumn + 1`
+				fi
+				multCount=0
+				sum=0
+			fi
+			
+			
+		done
+	done 3<tempLeftFile 4<tempRightFile
+	
+	# removes trailing new line before echoing out
+	newMatrix=${newMatrix%?}
+	newMatrix=${newMatrix%?}
+	echo -e "$newMatrix"
+	
+	#removing temporary files
+	rm tempLeftFile
+	rm tempRightFile
+}
+
 # if first argument is dims or transpose or mean
 if [ $1 = "dims" ] || [ $1 = "transpose" ] || [ $1 = "mean" ]; then
 	
@@ -241,22 +350,32 @@ elif [ $1 = "add" ] || [ $1 = "multiply" ]; then
 
 	#if first argument is multiply
 	if [ $1 = "multiply" ]; then
+		m1rows=0
 		m1columns=0
 		m2rows=0
+		m2columns=0
 		
 		#gets dimensions of both files to compare
 		dims $2
+		m1rows=$numberRows
 		m1columns=$numberColumns
 		numberRows=0
 		numberColumns=0
 		dims $3
 		m2rows=$numberRows
+		m2columns=$numberColumns
 		
 		if [ $m1columns -ne $m2rows ]; then
 			echo "Incorrect file dimensions" 1>&2
 			exit 1
 		fi
 		
+		datafilepath=$3
+		transpose $3
+		echo -e "$newMatrix" > tempMatrix89547
+
+		multiply $2 tempMatrix89547
+		rm tempMatrix89547
 	fi
 
 #any other commands other than those possible
