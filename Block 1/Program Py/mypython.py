@@ -10,7 +10,6 @@ fileList = [ 	open("file1.txt", "w+"),
 				open("file3.txt", "w+")
 			]
 
-
 # function that fills file passed in with 10 random lowercase letters 
 # and a newline at the end
 def fillFile(fileName):
@@ -19,9 +18,18 @@ def fillFile(fileName):
 		fileName.write(randomChar)
 	fileName.write("\n")	
 
-
-
 # calling fillFile with each of the files
 for iter in range(0, len(fileList)):
 	fillFile(fileList[iter])
+	
+# generating random numbers
+firstNumber = random.randrange(1, 43)
+secondNumber = random.randrange(1, 43)
+
+#output file contents and numbers
+print(firstNumber)
+print(secondNumber)
+
+	
+
 
