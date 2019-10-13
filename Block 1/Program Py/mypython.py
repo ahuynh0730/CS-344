@@ -18,17 +18,25 @@ def fillFile(fileName):
 		fileName.write(randomChar)
 	fileName.write("\n")	
 
-# calling fillFile with each of the files
-for iter in range(0, len(fileList)):
-	fillFile(fileList[iter])
-	
-# generating random numbers
-firstNumber = random.randrange(1, 43)
-secondNumber = random.randrange(1, 43)
 
-#output file contents and numbers
-print(firstNumber)
-print(secondNumber)
+def main():
+	# calling fillFile with each of the files
+	for iter in range(0, len(fileList)):
+		fillFile(fileList[iter])
+		
+	# generating random numbers between 1 and 42 inclusively
+	firstNumber = random.randrange(1, 43)
+	secondNumber = random.randrange(1, 43)
+
+	# multiplies two random numbers together
+	product = firstNumber * secondNumber
+
+	#output file contents and numbers
+	print(firstNumber)
+	print(secondNumber)
+	print(product)
+
+main()
 
 	
 
