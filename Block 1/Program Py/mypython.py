@@ -5,3 +5,7 @@ file1= open("file1.txt", "w+")
 file2= open("file2.txt", "w+")
 file3= open("file3.txt", "w+")
 
+#closing the files
+file1.close()
+file2.close()
+file3.close()
