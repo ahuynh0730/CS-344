@@ -2,11 +2,14 @@
 
 import string
 import random
+import array
 
 # opening files if they exist, otherwise will create
-file1= open("file1.txt", "w+")
-file2= open("file2.txt", "w+")
-file3= open("file3.txt", "w+")
+fileList = [ 	open("file1.txt", "w+"),
+				open("file2.txt", "w+"),
+				open("file3.txt", "w+")
+			]
+
 
 # function that fills file passed in with 10 random lowercase letters 
 # and a newline at the end
@@ -16,12 +19,9 @@ def fillFile(fileName):
 		fileName.write(randomChar)
 	fileName.write("\n")	
 
-# calling fillFile with each of the files
-fillFile(file1)
-fillFile(file2)
-fillFile(file3)
 
-#closing the files
-file1.close()
-file2.close()
-file3.close()
+
+# calling fillFile with each of the files
+for iter in range(0, len(fileList)):
+	fillFile(fileList[iter])
+
