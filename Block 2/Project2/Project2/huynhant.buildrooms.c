@@ -11,7 +11,14 @@
 #include <unistd.h>
 #include <stdlib.h>
 
+enum roomType { START_ROOM = 0, MID_ROOM = 1, END_ROOM = 2};
 
+struct Room {
+	char Name[8];
+	enum roomType type;
+	struct Room *connections[6];
+	int numConnections;
+};
 
 int main(int argc, char* argv[]) {
 
