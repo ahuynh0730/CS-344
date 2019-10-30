@@ -10,3 +10,12 @@ Block 2/Project2/.vs/Project2/v15/.suo
 *.vcxproj
 *.filters
 *.user
+*.lastbuildstate
+Block 2/Project2/Project2/Debug/Project2.tlog/unsuccessfulbuild
+*.tlog
+*.idb
+*.pdb
+*.log
+*.exe
+*.ilk
+*.obj
