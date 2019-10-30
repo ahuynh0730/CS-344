@@ -2,3 +2,11 @@
 Block 1/Program 1/m1
 Block 1/Program 1/m2
 Block 1/Program 1/matrix2
+Block 2/Project2/.vs/Project2/v15/.suo
+*.db
+*.opendb
+*.ipch
+*.sln
+*.vcxproj
+*.filters
+*.user
