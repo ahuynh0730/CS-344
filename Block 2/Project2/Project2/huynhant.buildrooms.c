@@ -12,12 +12,18 @@
 #include <stdlib.h>
 #include <time.h>
 
+//constant definitions
+#define LONGEST_ROOM_NAME_LENGTH 9 //will allow 8 characters plus null
+#define MAX_CONNECTIONS 6
+#define TOTAL_ROOMS 10
+#define ROOMS_TO_CREATE 7
+
 enum roomType { START_ROOM = 0, MID_ROOM = 1, END_ROOM = 2};
 
 struct Room {
-	char Name[8];
+	char Name[LONGEST_ROOM_NAME_LENGTH];
 	enum roomType type;
-	struct Room *connections[6];
+	struct Room *connections[MAX_CONNECTIONS];
 	int numConnections;
 };
 
@@ -27,9 +33,8 @@ int main(int argc, char* argv[]) {
 
 	srand(time(0));
 
-	int totalRooms = 10;
 	//list of possible room names
-	char roomNames[10][9] = {
+	char roomNames[TOTAL_ROOMS][LONGEST_ROOM_NAME_LENGTH] = {
 		"UnderSea",
 		"Lava",
 		"Darkness",
@@ -43,11 +48,11 @@ int main(int argc, char* argv[]) {
 	};
 
 	//array to hold pointers to each room
-	struct Room *roomsToTraverse[7];
+	struct Room *roomsToTraverse[ROOMS_TO_CREATE];
 
 	//creates first room
 	int roomNumber;
-	roomNumber = rand() % 10;
+	roomNumber = rand() % TOTAL_ROOMS;
 	printf("random number: %d\n", roomNumber);
 
 	//gets current process id
