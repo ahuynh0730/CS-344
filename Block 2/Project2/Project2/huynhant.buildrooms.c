@@ -10,6 +10,7 @@
 #include <sys/types.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <time.h>
 
 enum roomType { START_ROOM = 0, MID_ROOM = 1, END_ROOM = 2};
 
@@ -20,7 +21,11 @@ struct Room {
 	int numConnections;
 };
 
+struct Room GetRandomRoom(int);
+
 int main(int argc, char* argv[]) {
+
+	srand(time(0));
 
 	int totalRooms = 10;
 	//list of possible room names
@@ -37,6 +42,13 @@ int main(int argc, char* argv[]) {
 		"Yorknew"
 	};
 
+	//array to hold pointers to each room
+	struct Room *roomsToTraverse[7];
+
+	//creates first room
+	int roomNumber;
+	roomNumber = rand() % 10;
+	printf("random number: %d\n", roomNumber);
 
 	//gets current process id
 	pid_t processId;
@@ -55,4 +67,8 @@ int main(int argc, char* argv[]) {
 
 
 	return 0;
+}
+
+struct Room GetRandomRoom(int randomRoomNumber) {
+
 }
