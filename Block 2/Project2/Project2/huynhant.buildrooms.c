@@ -22,6 +22,22 @@ struct Room {
 
 int main(int argc, char* argv[]) {
 
+	int totalRooms = 10;
+	//list of possible room names
+	char roomNames[10][9] = {
+		"UnderSea",
+		"Lava",
+		"Darkness",
+		"WanoKuni",
+		"Galar",
+		"Hyrule",
+		"Magnolia",
+		"Wakanda",
+		"Tropical",
+		"Yorknew"
+	};
+
+
 	//gets current process id
 	pid_t processId;
 	processId = getpid();
