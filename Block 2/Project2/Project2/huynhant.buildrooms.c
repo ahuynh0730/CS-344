@@ -18,15 +18,15 @@
 #define TOTAL_ROOMS 10
 #define ROOMS_TO_CREATE 7
 
-enum roomType { START_ROOM = 0, MID_ROOM = 1, END_ROOM = 2};
 
 struct Room {
-	char Name[LONGEST_ROOM_NAME_LENGTH];
-	enum roomType type;
+	char* name;
+	char* type;
 	struct Room *connections[MAX_CONNECTIONS];
 	int numConnections;
 };
 
+void createRoom(struct Room*, char[TOTAL_ROOMS][LONGEST_ROOM_NAME_LENGTH], char*, int*);
 struct Room GetRandomRoom(int);
 
 int main(int argc, char* argv[]) {
@@ -47,13 +47,32 @@ int main(int argc, char* argv[]) {
 		"Yorknew"
 	};
 
-	//array to hold pointers to each room
+	//array to hold pointers to each room and allocates memory
 	struct Room *roomsToTraverse[ROOMS_TO_CREATE];
+	int i;
+	for (i = 0; i < ROOMS_TO_CREATE; i++) {
+		roomsToTraverse[i] = malloc(sizeof(struct Room));
+	}
 
-	//creates first room
-	int roomNumber;
-	roomNumber = rand() % TOTAL_ROOMS;
-	printf("random number: %d\n", roomNumber);
+	//array used to keep track of which room name was already used, initializes to 0
+	int roomsCreated[TOTAL_ROOMS];
+	for (i = 0; i < TOTAL_ROOMS; i++) {
+		roomsCreated[i] = 0;
+	}
+
+
+	//creates all the rooms
+	createRoom(roomsToTraverse[0], roomNames, "START_ROOM", roomsCreated);
+	for (i = 1; i < ROOMS_TO_CREATE - 1; i++) {
+		createRoom(roomsToTraverse[i], roomNames, "MID_ROOM", roomsCreated);
+	}
+	createRoom(roomsToTraverse[ROOMS_TO_CREATE - 1], roomNames, "END_ROOM", roomsCreated);
+
+
+	//prints all rooms
+	for (i = 0; i < ROOMS_TO_CREATE; i++) {
+		printf("Room %d: %s %s\n", i, roomsToTraverse[i]->name, roomsToTraverse[i]->type);
+	}
 
 	//gets current process id
 	pid_t processId;
@@ -68,11 +87,37 @@ int main(int argc, char* argv[]) {
 	snprintf(directoryName, 25, "huynhant.rooms.%d", processId);
 
 	//makes directory
-	mkdir(directoryName);
+	//mkdir(directoryName);
+
+	//frees memory used by rooms array
+	i = 0;
+	for (i; i < ROOMS_TO_CREATE; i++) {
+		free(roomsToTraverse[i]);
+	}
 
 
 	return 0;
 }
+
+//creates a room
+void createRoom(struct Room* roomPtr, char roomNames[TOTAL_ROOMS][LONGEST_ROOM_NAME_LENGTH], char* roomType, int* roomsCreated) {
+	int roomNumber;
+	roomNumber = rand() % TOTAL_ROOMS;
+	//will keep randomizing until a new number appears
+	while (roomsCreated[roomNumber] != 0) {
+		roomNumber = rand() % TOTAL_ROOMS;
+	}
+
+	roomsCreated[roomNumber] = 1;
+	
+	//will set the room name and type
+	roomPtr->name = roomNames[roomNumber];
+	roomPtr->type = roomType;
+	
+}
+
+
+
 
 struct Room GetRandomRoom(int randomRoomNumber) {
 
