@@ -83,7 +83,7 @@ int main(int argc, char* argv[]) {
 	snprintf(directoryName, 25, "huynhant.rooms.%d", processId);
 
 	//makes directory
-	/*mkdir(directoryName, 0700);
+	mkdir(directoryName, 0700);
 	
 	//moves to new directory
 	chdir(directoryName);
@@ -92,7 +92,7 @@ int main(int argc, char* argv[]) {
 	//creates new file for each room
 	for (i = 0; i < ROOMS_TO_CREATE; i++) {
 		createFile(roomsToTraverse[i]);
-	}*/
+	}
 	
 
 	//frees memory used by rooms array
@@ -141,6 +141,10 @@ void createFile(struct Room* roomPtr) {
 
 	//writes room description to file
 	fprintf(filePointer, "ROOM NAME: %s\n", roomPtr->name);
+	int i;
+	for (i = 0; i < roomPtr->numConnections; i++) {
+		fprintf(filePointer, "CONNECTION %d: %s\n", i + 1, roomPtr->connections[i]->name);
+	}
 	fprintf(filePointer, "ROOM TYPE: %s\n", roomPtr->type);
 
 	//closes the file
