@@ -11,12 +11,14 @@
 #include <unistd.h>
 #include <stdlib.h>
 #include <time.h>
+#include <fcntl.h>
 
 //constant definitions
 #define LONGEST_ROOM_NAME_LENGTH 9 //will allow 8 characters plus null
 #define MAX_CONNECTIONS 6
 #define TOTAL_ROOMS 10
 #define ROOMS_TO_CREATE 7
+#define FILE_SUFFIX "_room"
 
 
 struct Room {
@@ -27,7 +29,7 @@ struct Room {
 };
 
 void createRoom(struct Room*, char[TOTAL_ROOMS][LONGEST_ROOM_NAME_LENGTH], char*, int*);
-struct Room GetRandomRoom(int);
+void createFile(struct Room*);
 
 int main(int argc, char* argv[]) {
 
@@ -68,12 +70,6 @@ int main(int argc, char* argv[]) {
 	}
 	createRoom(roomsToTraverse[ROOMS_TO_CREATE - 1], roomNames, "END_ROOM", roomsCreated);
 
-
-	//prints all rooms
-	for (i = 0; i < ROOMS_TO_CREATE; i++) {
-		printf("Room %d: %s %s\n", i, roomsToTraverse[i]->name, roomsToTraverse[i]->type);
-	}
-
 	//gets current process id
 	pid_t processId;
 	processId = getpid();
@@ -87,14 +83,24 @@ int main(int argc, char* argv[]) {
 	snprintf(directoryName, 25, "huynhant.rooms.%d", processId);
 
 	//makes directory
-	//mkdir(directoryName);
+	/*mkdir(directoryName, 0700);
+	
+	//moves to new directory
+	chdir(directoryName);
+	
+	
+	//creates new file for each room
+	for (i = 0; i < ROOMS_TO_CREATE; i++) {
+		createFile(roomsToTraverse[i]);
+	}*/
+	
 
 	//frees memory used by rooms array
 	i = 0;
 	for (i; i < ROOMS_TO_CREATE; i++) {
 		free(roomsToTraverse[i]);
 	}
-
+	
 
 	return 0;
 }
@@ -116,9 +122,27 @@ void createRoom(struct Room* roomPtr, char roomNames[TOTAL_ROOMS][LONGEST_ROOM_N
 	
 }
 
+//creates each file, requires a pointer to the room to be passed in
+void createFile(struct Room* roomPtr) {
 
+	//will initialize fileName to all \0
+	char fileName[14];
+	memset(fileName, '\0', 14);
 
+	//copies room's name into fileName
+	strcpy(fileName, roomPtr->name);
 
-struct Room GetRandomRoom(int randomRoomNumber) {
+	//concatenates FILE_SUFFIX(_room) to end of fileName
+	strcat(fileName, FILE_SUFFIX);
 
+	//opens the file with the appropriate name
+	FILE * filePointer;
+	filePointer = fopen(fileName, "w+");
+
+	//writes room description to file
+	fprintf(filePointer, "ROOM NAME: %s\n", roomPtr->name);
+	fprintf(filePointer, "ROOM TYPE: %s\n", roomPtr->type);
+
+	//closes the file
+	fclose(filePointer);
 }
