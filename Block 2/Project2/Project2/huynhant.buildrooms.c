@@ -4,6 +4,7 @@
 // Date Due: 11/1/2019
 
 //this program does not run on windows, must be run in a linux setting
+//outline from https://oregonstate.instructure.com/courses/1738958/pages/2-dot-2-program-outlining-in-program-2 was used
 
 #include <stdio.h>
 #include <string.h>
@@ -33,7 +34,13 @@ struct Room {
 
 void createRoom(struct Room*, char[TOTAL_ROOMS][LONGEST_ROOM_NAME_LENGTH], char*, int*);
 void createFile(struct Room*);
-enum bool IsGraphFull(struct Room**);
+enum bool isGraphFull(struct Room**);
+void addRandomConnection(struct Room**);
+struct Room* getRandomRoom(struct Room**);
+enum bool canAddConnectionFrom(struct Room*);
+enum bool connectionAlreadyExists(struct Room*, struct Room*);
+void connectRoom(struct Room*, struct Room*);
+enum bool isSameRoom(struct Room*, struct Room*);
 
 int main(int argc, char* argv[]) {
 
@@ -74,16 +81,11 @@ int main(int argc, char* argv[]) {
 	}
 	createRoom(roomsToTraverse[ROOMS_TO_CREATE - 1], roomNames, "END_ROOM", roomsCreated);
 
-	for (i = 0; i < ROOMS_TO_CREATE; i++) {
-		roomsToTraverse[i]->numConnections = 2;
+	// Create all connections in graph
+	while (isGraphFull(roomsToTraverse) == false){
+		addRandomConnection(roomsToTraverse);
 	}
-
-	if (IsGraphFull(roomsToTraverse)) {
-		printf("graph is full\n");
-	}
-	else
-		printf("graph is not full\n");
-
+	
 	//gets current process id
 	pid_t processId;
 	processId = getpid();
@@ -96,7 +98,7 @@ int main(int argc, char* argv[]) {
 	snprintf(directoryName, 25, "huynhant.rooms.%d", processId);
 
 	//makes directory
-	/*mkdir(directoryName, 0700);
+	mkdir(directoryName, 0700);
 	
 	//moves to new directory
 	chdir(directoryName);
@@ -105,7 +107,7 @@ int main(int argc, char* argv[]) {
 	//creates new file for each room
 	for (i = 0; i < ROOMS_TO_CREATE; i++) {
 		createFile(roomsToTraverse[i]);
-	}*/
+	}
 	
 
 	//frees memory used by rooms array
@@ -165,7 +167,7 @@ void createFile(struct Room* roomPtr) {
 }
 
 //will return false if all rooms in graph have greater than 2 and less than 7 rooms(3-6)
-enum bool IsGraphFull(struct Room** roomsToTraverse)
+enum bool isGraphFull(struct Room** roomsToTraverse)
 {
 	int i;
 	for (i = 0; i < ROOMS_TO_CREATE; i++) {
@@ -173,5 +175,73 @@ enum bool IsGraphFull(struct Room** roomsToTraverse)
 			return false;
 	}
 	return true;
+}
+
+// Adds a random, valid outbound connection from a Room to another Room
+void addRandomConnection(struct Room** roomsToTraverse){
+	struct Room* A;  
+	struct Room* B;
+
+	while (true)
+	{
+		A = getRandomRoom(roomsToTraverse);
+
+		if (canAddConnectionFrom(A) == true)
+			break;
+	}
+
+	do
+	{
+		B = getRandomRoom(roomsToTraverse);
+	} while (canAddConnectionFrom(B) == false || isSameRoom(A, B) == true || connectionAlreadyExists(A, B) == true);
+
+	connectRoom(A, B);   
+}
+
+
+// Returns a random Room, does NOT validate if connection can be added
+struct Room* getRandomRoom(struct Room** roomsToTraverse){
+	int randomNumber;
+	randomNumber = rand() % ROOMS_TO_CREATE;
+	return roomsToTraverse[randomNumber];
+}
+
+// Returns true if a connection can be added from Room x (< 6 outbound connections), false otherwise
+enum bool canAddConnectionFrom(struct Room* roomPtr) {
+	if (roomPtr->numConnections < MAX_CONNECTIONS){
+		return true;
+	}
+	return false;
+}
+
+// Returns true if a connection from Room x to Room y already exists, false otherwise
+enum bool connectionAlreadyExists(struct Room* roomPtr1, struct Room* roomPtr2){
+	int i;
+	int strCompareResults;
+	for (i = 0; i < roomPtr1->numConnections; i++) {
+		strCompareResults = strcmp(roomPtr1->connections[i]->name, roomPtr2->name);
+		if (strCompareResults == 0) {
+			return true;
+		}
+	}
+	return false;
+}
+
+// Connects Rooms x and y together, does not check if this connection is valid, connects both ways
+void connectRoom(struct Room* roomPtr1, struct Room* roomPtr2){
+	roomPtr1->connections[roomPtr1->numConnections] = roomPtr2;
+	roomPtr1->numConnections++;
+	roomPtr2->connections[roomPtr2->numConnections] = roomPtr1;
+	roomPtr2->numConnections++;
+}
+
+// Returns true if Rooms x and y are the same Room, false otherwise
+enum bool isSameRoom(struct Room* roomPtr1, struct Room* roomPtr2){
+	int strCompareResults;
+	strCompareResults = strcmp(roomPtr1->name, roomPtr2->name);
+	if (strCompareResults == 0) {
+		return true;
+	}
+	return false;
 }
 
