@@ -16,20 +16,24 @@
 //constant definitions
 #define LONGEST_ROOM_NAME_LENGTH 9 //will allow 8 characters plus null
 #define MAX_CONNECTIONS 6
+#define MIN_CONNECTIONS 3
 #define TOTAL_ROOMS 10
 #define ROOMS_TO_CREATE 7
 #define FILE_SUFFIX "_room"
 
 
+enum bool {false = 0, true = 1};
+
 struct Room {
-	char* name;
-	char* type;
+	char name[LONGEST_ROOM_NAME_LENGTH];
+	char type[11];
 	struct Room *connections[MAX_CONNECTIONS];
 	int numConnections;
 };
 
 void createRoom(struct Room*, char[TOTAL_ROOMS][LONGEST_ROOM_NAME_LENGTH], char*, int*);
 void createFile(struct Room*);
+enum bool IsGraphFull(struct Room**);
 
 int main(int argc, char* argv[]) {
 
@@ -70,10 +74,19 @@ int main(int argc, char* argv[]) {
 	}
 	createRoom(roomsToTraverse[ROOMS_TO_CREATE - 1], roomNames, "END_ROOM", roomsCreated);
 
+	for (i = 0; i < ROOMS_TO_CREATE; i++) {
+		roomsToTraverse[i]->numConnections = 2;
+	}
+
+	if (IsGraphFull(roomsToTraverse)) {
+		printf("graph is full\n");
+	}
+	else
+		printf("graph is not full\n");
+
 	//gets current process id
 	pid_t processId;
 	processId = getpid();
-	printf("The process id is: %d\n", processId);
 
 	//creates array of characters and initializes to null
 	char directoryName[25];
@@ -83,7 +96,7 @@ int main(int argc, char* argv[]) {
 	snprintf(directoryName, 25, "huynhant.rooms.%d", processId);
 
 	//makes directory
-	mkdir(directoryName, 0700);
+	/*mkdir(directoryName, 0700);
 	
 	//moves to new directory
 	chdir(directoryName);
@@ -92,7 +105,7 @@ int main(int argc, char* argv[]) {
 	//creates new file for each room
 	for (i = 0; i < ROOMS_TO_CREATE; i++) {
 		createFile(roomsToTraverse[i]);
-	}
+	}*/
 	
 
 	//frees memory used by rooms array
@@ -117,8 +130,8 @@ void createRoom(struct Room* roomPtr, char roomNames[TOTAL_ROOMS][LONGEST_ROOM_N
 	roomsCreated[roomNumber] = 1;
 	
 	//will set the room name and type
-	roomPtr->name = roomNames[roomNumber];
-	roomPtr->type = roomType;
+	strcpy(roomPtr->name, roomNames[roomNumber]);
+	strcpy(roomPtr->type, roomType);
 	
 }
 
@@ -150,3 +163,15 @@ void createFile(struct Room* roomPtr) {
 	//closes the file
 	fclose(filePointer);
 }
+
+//will return false if all rooms in graph have greater than 2 and less than 7 rooms(3-6)
+enum bool IsGraphFull(struct Room** roomsToTraverse)
+{
+	int i;
+	for (i = 0; i < ROOMS_TO_CREATE; i++) {
+		if ((roomsToTraverse[i]->numConnections < MIN_CONNECTIONS) || (roomsToTraverse[i]->numConnections > MAX_CONNECTIONS))
+			return false;
+	}
+	return true;
+}
+
