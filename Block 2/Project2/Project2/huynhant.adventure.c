@@ -32,13 +32,19 @@ void turnFilesIntoRooms(struct Room**);
 struct Room* getRoomWithMatchingName(struct Room**, char*);
 
 int main(int argc, char* argv[]) {
+	int i;
+	struct Room* endRoom;
+	struct Room* currentRoom;
+	struct Room* nextRoom;
+	char userInput[100];
+	struct Room* visitedRooms[100];
+	int numberSteps = 0;
 	//initializes and sets dirName to \0
 	char dirName[LONGEST_DIR_NAME_LENGTH];
 	memset(dirName, '\0', sizeof(dirName));
 
 	//initializes array of room pointers and allocates space for them
 	struct Room *roomsToTraverse[ROOMS_TO_CREATE];
-	int i;
 	for (i = 0; i < ROOMS_TO_CREATE; i++) {
 		roomsToTraverse[i] = malloc(sizeof(struct Room));
 	}
@@ -51,14 +57,51 @@ int main(int argc, char* argv[]) {
 
 	turnFilesIntoRooms(roomsToTraverse);
 
-
+	//will set current room and end room pointers
 	for (i = 0; i < ROOMS_TO_CREATE; i++) {
-		printf("Room %d name: %s\n", i + 1, roomsToTraverse[i]->name);
-		int j;
-		for (j = 0; j < roomsToTraverse[i]->numConnections; j++) {
-			printf("Connection %d: %s\n", j + 1, roomsToTraverse[i]->connections[j]->name);
+		if (strstr(roomsToTraverse[i]->type, "START_ROOM")) {
+			currentRoom = roomsToTraverse[i];
 		}
-		printf("Room type: %s\n", roomsToTraverse[i]->type);
+		else if (strstr(roomsToTraverse[i]->type, "END_ROOM")) {
+			endRoom = roomsToTraverse[i];
+		}
+	}
+
+
+	while (currentRoom != endRoom) {
+		printf("CURRENT LOCATION: %s\n", currentRoom->name);
+		printf("POSSIBLE CONNECTIONS: ");
+		for (i = 0; i < currentRoom->numConnections; i++) {
+			printf(currentRoom->connections[i]->name);
+			if (i != currentRoom->numConnections - 1) {
+				printf(", ");
+			}
+			else {
+				printf(".\n");
+			}
+		}
+		printf("WHERE TO? >");
+		scanf("%s", &userInput);
+		nextRoom = NULL;
+		printf("\n");
+		for (i = 0; i < currentRoom->numConnections; i++) {
+			if (strstr(userInput, currentRoom->connections[i]->name)) {
+				nextRoom = currentRoom->connections[i];
+				visitedRooms[numberSteps] = nextRoom;
+				numberSteps++;
+				currentRoom = nextRoom;
+				break;
+			}
+		}
+		if (nextRoom == NULL) {
+			printf("HUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN.\n\n");
+		}
+	}
+
+	printf("YOU HAVE FOUND THE END ROOM! CONGRATULATIONS!\n");
+	printf("YOU TOOK %d STEPS. YOUR PATH TO VICTORY WAS:\n", numberSteps);
+	for (i = 0; i < numberSteps; i++) {
+		printf("%s\n", visitedRooms[i]->name);
 	}
 
 	//frees memory used by rooms array
@@ -206,6 +249,7 @@ void turnFilesIntoRooms(struct Room** roomsToTraverse) {
 						room1->numConnections++;
 					}
 
+					//will set room type
 					else if (strstr(textBeforeSeparator, "ROOM TYPE")) {
 						strcpy(roomsToTraverse[currentFileIndex]->type, textAfterSeparator);
 					}
@@ -228,6 +272,7 @@ struct Room* getRoomWithMatchingName(struct Room** roomsToTraverse, char* roomNa
 			return roomsToTraverse[i];
 		}
 	}
+	return NULL;
 }
 
 
