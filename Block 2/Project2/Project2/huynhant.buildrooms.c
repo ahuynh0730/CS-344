@@ -21,6 +21,7 @@
 #define TOTAL_ROOMS 10
 #define ROOMS_TO_CREATE 7
 #define FILE_SUFFIX "_room"
+#define LONGEST_DIRECTORY_NAME_LENGTH 100
 
 
 enum bool {false = 0, true = 1};
@@ -91,11 +92,11 @@ int main(int argc, char* argv[]) {
 	processId = getpid();
 
 	//creates array of characters and initializes to null
-	char directoryName[25];
-	memset(directoryName, '\0', 25);
+	char directoryName[LONGEST_DIRECTORY_NAME_LENGTH];
+	memset(directoryName, '\0', sizeof(directoryName));
 
 	//fills array with name of directory and process id
-	snprintf(directoryName, 25, "huynhant.rooms.%d", processId);
+	snprintf(directoryName, sizeof(directoryName), "huynhant.rooms.%d", processId);
 
 	//makes directory
 	mkdir(directoryName, 0700);
@@ -142,7 +143,7 @@ void createFile(struct Room* roomPtr) {
 
 	//will initialize fileName to all \0
 	char fileName[14];
-	memset(fileName, '\0', 14);
+	memset(fileName, '\0', sizeof(fileName));
 
 	//copies room's name into fileName
 	strcpy(fileName, roomPtr->name);
