@@ -67,10 +67,13 @@ int main(int argc, char* argv[]) {
 		}
 	}
 
-
+	//will keep looping until the current room is the end room
 	while (currentRoom != endRoom) {
+		//prints current location and possible connections
 		printf("CURRENT LOCATION: %s\n", currentRoom->name);
 		printf("POSSIBLE CONNECTIONS: ");
+
+		//displays each connection separated by a comma, period will come after last connection
 		for (i = 0; i < currentRoom->numConnections; i++) {
 			printf(currentRoom->connections[i]->name);
 			if (i != currentRoom->numConnections - 1) {
@@ -80,24 +83,33 @@ int main(int argc, char* argv[]) {
 				printf(".\n");
 			}
 		}
+
+		//prints where to and gets user input
 		printf("WHERE TO? >");
 		scanf("%s", &userInput);
 		nextRoom = NULL;
 		printf("\n");
+
+		//will search through connections for room with that name, then assign it to be next room 
 		for (i = 0; i < currentRoom->numConnections; i++) {
 			if (strstr(userInput, currentRoom->connections[i]->name)) {
 				nextRoom = currentRoom->connections[i];
+				
+				//assigns next pointer to point to that room and incremements the number of steps taken
 				visitedRooms[numberSteps] = nextRoom;
 				numberSteps++;
 				currentRoom = nextRoom;
 				break;
 			}
 		}
+
+		//if nextRoom is still null, then no room with that name was found
 		if (nextRoom == NULL) {
 			printf("HUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN.\n\n");
 		}
 	}
 
+	//if currentroom is end room, then they have won and will display number of steps and the rooms visited
 	printf("YOU HAVE FOUND THE END ROOM! CONGRATULATIONS!\n");
 	printf("YOU TOOK %d STEPS. YOUR PATH TO VICTORY WAS:\n", numberSteps);
 	for (i = 0; i < numberSteps; i++) {
