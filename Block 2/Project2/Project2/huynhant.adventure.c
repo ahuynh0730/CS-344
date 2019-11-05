@@ -11,6 +11,7 @@
 #include <unistd.h>
 #include <fcntl.h>
 #include <stdlib.h>
+#include <pthread.h>
 
 #define LONGEST_DIR_NAME_LENGTH 100
 #define TARGET_DIR_PREFIX "huynhant.rooms."
@@ -30,6 +31,8 @@ struct Room {
 void findNewestDirectory(char*);
 void turnFilesIntoRooms(struct Room**);
 struct Room* getRoomWithMatchingName(struct Room**, char*);
+void createThread();
+void displayTime();
 
 int main(int argc, char* argv[]) {
 	int i;
@@ -47,6 +50,7 @@ int main(int argc, char* argv[]) {
 	struct Room *roomsToTraverse[ROOMS_TO_CREATE];
 	for (i = 0; i < ROOMS_TO_CREATE; i++) {
 		roomsToTraverse[i] = malloc(sizeof(struct Room));
+		roomsToTraverse[i]->numConnections = 0;
 	}
 
 
@@ -56,6 +60,7 @@ int main(int argc, char* argv[]) {
 	printf("In directory: %s\n", dirName);
 
 	turnFilesIntoRooms(roomsToTraverse);
+	chdir("..");
 
 	//will set current room and end room pointers
 	for (i = 0; i < ROOMS_TO_CREATE; i++) {
@@ -85,8 +90,15 @@ int main(int argc, char* argv[]) {
 		}
 
 		//prints where to and gets user input
+		memset(userInput, '\0', sizeof(userInput));
 		printf("WHERE TO? >");
 		scanf("%s", &userInput);
+
+		//if user inputs time
+		if (strcmp(userInput, "time") == 0) {
+			createThread();
+			displayTime();
+		}
 		nextRoom = NULL;
 		printf("\n");
 
@@ -104,7 +116,7 @@ int main(int argc, char* argv[]) {
 		}
 
 		//if nextRoom is still null, then no room with that name was found
-		if (nextRoom == NULL) {
+		if (nextRoom == NULL && strcmp(userInput, "time") != 0) {
 			printf("HUH? I DON'T UNDERSTAND THAT ROOM. TRY AGAIN.\n\n");
 		}
 	}
@@ -287,4 +299,24 @@ struct Room* getRoomWithMatchingName(struct Room** roomsToTraverse, char* roomNa
 	return NULL;
 }
 
+
+void createThread() {
+
+}
+
+//will read time from currentTime.txt and display it
+void displayTime() {
+	FILE* inputFile = fopen("currentTime.txt", "r");
+	char buffer[100];
+	memset(buffer, '\0', sizeof(buffer));
+
+	if (inputFile == NULL) {               //currentTime.txt must exist
+		perror("Not found\n");
+	}
+	else {
+		fgets(buffer, sizeof(buffer), inputFile);
+		printf("\n %s\n", buffer);
+	}
+	fclose(inputFile);
+}
 
