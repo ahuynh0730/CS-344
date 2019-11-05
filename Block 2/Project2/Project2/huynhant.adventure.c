@@ -12,6 +12,7 @@
 #include <fcntl.h>
 #include <stdlib.h>
 #include <pthread.h>
+#include <time.h>
 
 #define LONGEST_DIR_NAME_LENGTH 100
 #define TARGET_DIR_PREFIX "huynhant.rooms."
@@ -19,6 +20,8 @@
 #define MAX_CONNECTIONS 6
 #define ROOM_SUFFIX "_room"
 #define ROOMS_TO_CREATE 7
+
+pthread_mutex_t mutex;
 
 struct Room {
 	char name[LONGEST_ROOM_NAME_LENGTH];
@@ -33,6 +36,7 @@ void turnFilesIntoRooms(struct Room**);
 struct Room* getRoomWithMatchingName(struct Room**, char*);
 void createThread();
 void displayTime();
+void* getTime();
 
 int main(int argc, char* argv[]) {
 	int i;
@@ -299,8 +303,31 @@ struct Room* getRoomWithMatchingName(struct Room** roomsToTraverse, char* roomNa
 	return NULL;
 }
 
+//gets time and writes to currentTime.txt overriding it if it exists
+void* getTime() {
+	FILE* outputFile = fopen("currentTime.txt", "w+");
+	char buffer[100];
+	memset(buffer, '\0', sizeof(buffer));
+	struct tm *sTm;
 
+	time_t currentTime = time(0);
+	sTm = gmtime(&currentTime);
+
+	strftime(buffer, sizeof(buffer), "%I:%M%p, %A, %B %d, %Y", sTm);
+	fputs(buffer, outputFile);
+	fclose(outputFile);
+
+}
+
+//creates the thread
 void createThread() {
+	pthread_t thread;
+	pthread_mutex_init(&mutex, NULL);
+	pthread_mutex_lock(&mutex);
+
+	int tid = pthread_create(&thread, NULL, getTime, NULL);
+	pthread_mutex_unlock(&mutex);
+	pthread_mutex_destroy(&mutex);
 
 }
 
@@ -310,9 +337,11 @@ void displayTime() {
 	char buffer[100];
 	memset(buffer, '\0', sizeof(buffer));
 
-	if (inputFile == NULL) {               //currentTime.txt must exist
+	//currentTime.txt must exist
+	if (inputFile == NULL) {               
 		perror("Not found\n");
 	}
+
 	else {
 		fgets(buffer, sizeof(buffer), inputFile);
 		printf("\n %s\n", buffer);
