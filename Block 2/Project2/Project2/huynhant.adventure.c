@@ -78,18 +78,21 @@ int main(int argc, char* argv[]) {
 
 	//will keep looping until the current room is the end room
 	while (currentRoom != endRoom) {
-		//prints current location and possible connections
-		printf("CURRENT LOCATION: %s\n", currentRoom->name);
-		printf("POSSIBLE CONNECTIONS: ");
+		if (strcmp(userInput, "time") != 0) {
+			//prints current location and possible connections
+			printf("CURRENT LOCATION: %s\n", currentRoom->name);
+			printf("POSSIBLE CONNECTIONS: ");
 
-		//displays each connection separated by a comma, period will come after last connection
-		for (i = 0; i < currentRoom->numConnections; i++) {
-			printf(currentRoom->connections[i]->name);
-			if (i != currentRoom->numConnections - 1) {
-				printf(", ");
-			}
-			else {
-				printf(".\n");
+		
+			//displays each connection separated by a comma, period will come after last connection
+			for (i = 0; i < currentRoom->numConnections; i++) {
+				printf(currentRoom->connections[i]->name);
+				if (i != currentRoom->numConnections - 1) {
+					printf(", ");
+				}
+				else {
+					printf(".\n");
+				}
 			}
 		}
 
