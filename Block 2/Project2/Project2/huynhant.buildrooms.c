@@ -3,7 +3,7 @@
 // Project: Program 2 - adventure
 // Date Due: 11/1/2019
 
-//this program does not run on windows, must be run in a linux setting
+
 //outline from https://oregonstate.instructure.com/courses/1738958/pages/2-dot-2-program-outlining-in-program-2 was used
 
 #include <stdio.h>
