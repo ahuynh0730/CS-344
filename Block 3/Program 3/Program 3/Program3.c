@@ -11,6 +11,19 @@
 
 int main(int argc, char* argv[]) {
 
+	char userInput[100];
 
+
+	while (1) {
+		//prompt and flushes 
+		printf("%s ", PROMPT_REQUEST);
+		fflush(stdout);
+
+		//sets userInput to all \0 before reading in
+		memset(userInput, '\0', sizeof(userInput));
+		fgets(userInput, sizeof(userInput), stdin);
+
+		printf("You entered: %s", userInput);
+	}
 	return 0;
 }
