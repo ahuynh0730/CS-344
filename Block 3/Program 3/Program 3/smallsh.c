@@ -9,6 +9,8 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
 
 #define PROMPT_REQUEST ":"
 #define MAX_ARGUMENTS 512
@@ -24,8 +26,10 @@ int main(int argc, char* argv[]) {
 	int currentArgument = 0;
 	pid_t cpid;
 	int status = 0;
-	char* inputFileName;
-	char* outputFileName;
+	char* inputFileName = NULL;
+	char* outputFileName = NULL;
+	int outputFile = 0;
+	int result = 0;
 
 	for (i = 0; i < MAX_ARGUMENTS; i++) {
 		arguments[i] = NULL;
@@ -115,6 +119,24 @@ int main(int argc, char* argv[]) {
 
 			//if the process is the child process
 			case 0:
+
+				//if output file is specified, opens named file 
+				if (outputFileName != NULL) {
+					outputFile = open(outputFileName, O_WRONLY | O_TRUNC | O_CREAT , 0700);
+					if (outputFile == -1) {
+						perror("open output file error");
+						_Exit(1);
+					}
+
+					//will redirect stdout to outputFile
+					result = dup2(outputFile, 1);
+					if (result == -1) {
+						perror("dup2 error");
+						_Exit(1);
+					}
+					close(outputFile);
+				}
+
 				//if execvp fails, will return a negative one and alert the user
 				if (execvp(arguments[0], arguments) < 0) {
 					printf("Sorry, %s is not a valid command.\n", arguments[0]);
@@ -148,6 +170,8 @@ int main(int argc, char* argv[]) {
 		currentArgument = 0;
 		free(outputFileName);
 		free(inputFileName);
+		inputFileName = NULL;
+		outputFileName = NULL;
 		
 		
 	
