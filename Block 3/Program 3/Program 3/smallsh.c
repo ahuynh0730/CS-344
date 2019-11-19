@@ -29,6 +29,7 @@ int main(int argc, char* argv[]) {
 	char* inputFileName = NULL;
 	char* outputFileName = NULL;
 	int outputFile = 0;
+	int inputFile = 0;
 	int result = 0;
 
 	for (i = 0; i < MAX_ARGUMENTS; i++) {
@@ -56,7 +57,7 @@ int main(int argc, char* argv[]) {
 			if (strcmp(parsedInput, "<") == 0) {
 				parsedInput = strtok(NULL, " ");
 				inputFileName = malloc(100 * sizeof(char));
-				strcpy(outputFileName, parsedInput);
+				strcpy(inputFileName, parsedInput);
 				parsedInput = strtok(NULL, " ");
 			}
 
@@ -119,6 +120,24 @@ int main(int argc, char* argv[]) {
 
 			//if the process is the child process
 			case 0:
+
+				//if input file is specified, opens named file 
+				if (inputFileName != NULL) {
+					
+					inputFile = open(inputFileName, O_RDONLY);
+					if (inputFile == -1) {
+						perror("open input file error");
+						_Exit(1);
+					}
+
+					//will redirect stdout to outputFile
+					result = dup2(inputFile, 0);
+					if (result == -1) {
+						perror("dup2 error");
+						_Exit(1);
+					}
+					close(inputFile);
+				}
 
 				//if output file is specified, opens named file 
 				if (outputFileName != NULL) {
