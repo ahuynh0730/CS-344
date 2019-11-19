@@ -22,9 +22,10 @@ int main(int argc, char* argv[]) {
 	char* parsedInput;
 	char* arguments[MAX_ARGUMENTS];
 	int currentArgument = 0;
-	char cwd[256];
 	pid_t cpid;
 	int status = 0;
+	char* inputFileName;
+	char* outputFileName;
 
 	for (i = 0; i < MAX_ARGUMENTS; i++) {
 		arguments[i] = NULL;
@@ -47,10 +48,29 @@ int main(int argc, char* argv[]) {
 			
 		//will loop through each space separated text and place in arguments
 		while (parsedInput != NULL) {
-			arguments[currentArgument] = malloc(100 * sizeof(char));
-			strcpy(arguments[currentArgument], parsedInput);
-			currentArgument++;
-			parsedInput = strtok(NULL, " ");
+			//if < was detected, indicating an input file will be next 
+			if (strcmp(parsedInput, "<") == 0) {
+				parsedInput = strtok(NULL, " ");
+				inputFileName = malloc(100 * sizeof(char));
+				strcpy(outputFileName, parsedInput);
+				parsedInput = strtok(NULL, " ");
+			}
+
+			//if > was detected, indicated an output file will be next
+			else if (strcmp(parsedInput, ">") == 0) {
+				parsedInput = strtok(NULL, " ");
+				outputFileName = malloc(100 * sizeof(char));
+				strcpy(outputFileName, parsedInput);
+				parsedInput = strtok(NULL, " ");
+			}
+
+			//all other arguments
+			else {
+				arguments[currentArgument] = malloc(100 * sizeof(char));
+				strcpy(arguments[currentArgument], parsedInput);
+				currentArgument++;
+				parsedInput = strtok(NULL, " ");
+			}
 		}
 
 		//if there were no arguments or the first argument started with #, will do nothing
@@ -95,10 +115,17 @@ int main(int argc, char* argv[]) {
 
 			//if the process is the child process
 			case 0:
+				//if execvp fails, will return a negative one and alert the user
+				if (execvp(arguments[0], arguments) < 0) {
+					printf("Sorry, %s is not a valid command.\n", arguments[0]);
+					fflush(stdout);
+					_Exit(1);
+				}
 				break;
 
 			//if the process is the parent
 			default:
+				waitpid(cpid, &status, 0);
 				break;
 			}
 		}
@@ -119,6 +146,8 @@ int main(int argc, char* argv[]) {
 			arguments[i] = NULL;
 		}
 		currentArgument = 0;
+		free(outputFileName);
+		free(inputFileName);
 		
 		
 	
