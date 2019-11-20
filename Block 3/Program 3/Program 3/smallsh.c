@@ -11,9 +11,12 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <signal.h>
 
 #define PROMPT_REQUEST ":"
 #define MAX_ARGUMENTS 512
+
+volatile sig_atomic_t foregroundOnly = 0;
 
 void showStatus(int childExitMethod) {
 	//code from slides
@@ -23,8 +26,26 @@ void showStatus(int childExitMethod) {
 		fflush(stdout);
 	}
 	else {
-		printf("Child terminated by a signal\n");
+		printf("terminated by signal %d\n", childExitMethod);
 		fflush(stdout);
+	}
+}
+
+void catchSIGINT(int signo) {
+	char* message = "terminated by signal 2\n";
+	write(STDOUT_FILENO, message, 23);
+}
+
+void catchSIGTSTP(int signo) {
+	if (!foregroundOnly) {
+		foregroundOnly = 1;
+		char* message = "\nEntering foreground-only mode (& is now ignored)\n";
+		write(STDOUT_FILENO, message, 50);
+	}
+	else {
+		foregroundOnly = 0;
+		char* message = "\nExiting foreground-only mode\n";
+		write(STDOUT_FILENO, message, 30);
 	}
 }
 
@@ -45,6 +66,20 @@ int main(int argc, char* argv[]) {
 	int inputFile = 0;
 	int result = 0;
 	int foregroundProcess = 1;
+	struct sigaction SIGINT_action = { 0 };
+	struct sigaction SIGTSTP_action = { 0 };
+
+	//actions for catching SIGINT and SIGTSTP
+	//obtained from slides
+	SIGINT_action.sa_handler = SIG_IGN;
+	sigfillset(&SIGINT_action.sa_mask);
+	SIGINT_action.sa_flags = 0;
+	sigaction(SIGINT, &SIGINT_action, NULL);
+
+	SIGTSTP_action.sa_handler = catchSIGTSTP;
+	sigfillset(&SIGTSTP_action.sa_mask);
+	SIGTSTP_action.sa_flags = 0;
+	sigaction(SIGTSTP, &SIGTSTP_action, NULL);
 
 	for (i = 0; i < MAX_ARGUMENTS; i++) {
 		arguments[i] = NULL;
@@ -99,19 +134,20 @@ int main(int argc, char* argv[]) {
 		//will only check for & if there is at least one argument
 		if (currentArgument != 0) {
 			if (strcmp(arguments[currentArgument - 1], "&") == 0) {
-				foregroundProcess = 0;
+				if (!foregroundOnly) {
+					foregroundProcess = 0;
+				}
 				free(arguments[currentArgument - 1]);
 				arguments[currentArgument - 1] = NULL;
 				currentArgument--;
 			}
 		}
 
-		//if there were no arguments or the first argument started with #, will do nothing
+		//if there were no arguments or the first argument started with #, will print line
 		if (arguments[0] == NULL || arguments[0][0] == '#') {
-			;
+			printf("\n");
 		}
 		
-
 		//will exit upon request, also freeing any memory that was malloc'd
 		else if (strcmp(arguments[0], "exit") == 0) {
 			for (i = 0; i < currentArgument; i++) {
@@ -148,6 +184,12 @@ int main(int argc, char* argv[]) {
 
 			//if the process is the child process
 			case 0:
+
+				//child process that is running in foreground will terminate if sigint is received
+				if (foregroundProcess) {          
+					SIGINT_action.sa_handler = SIG_DFL;
+					sigaction(SIGINT, &SIGINT_action, NULL);
+				}
 
 				//if input file is specified, opens named file 
 				if (inputFileName != NULL) {
@@ -215,6 +257,17 @@ int main(int argc, char* argv[]) {
 							_Exit(1);
 						}
 						close(outputFile);
+					}
+				}
+
+				//will go through arguments array and change $$ into process id
+				for (i = 0; i < currentArgument; i++) {
+					if (strcmp(arguments[i], "$$") == 0) {
+						pid_t parent_pid = getppid();
+						char* mypid = (char *)malloc(sizeof(int));
+						sprintf(mypid, "%d", parent_pid);
+						strcpy(arguments[i], mypid);
+						free(mypid);
 					}
 				}
 
