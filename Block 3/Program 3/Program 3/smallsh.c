@@ -34,6 +34,7 @@ void showStatus(int childExitMethod) {
 void catchSIGINT(int signo) {
 	char* message = "terminated by signal 2\n";
 	write(STDOUT_FILENO, message, 23);
+	_Exit(1);
 }
 
 void catchSIGTSTP(int signo) {
@@ -103,6 +104,7 @@ int main(int argc, char* argv[]) {
 		parsedInput = strtok(userInput, " ");
 			
 		//will loop through each space separated text and place in arguments
+		//will loop through each space separated text and place in arguments
 		while (parsedInput != NULL) {
 			//if < was detected, indicating an input file will be next 
 			if (strcmp(parsedInput, "<") == 0) {
@@ -127,6 +129,18 @@ int main(int argc, char* argv[]) {
 				currentArgument++;
 				parsedInput = strtok(NULL, " ");
 			}
+
+			//will change any instances of $$ into process id as text is being parsed
+
+			char* p;
+			p = strstr(arguments[currentArgument - 1], "$$");
+			if (p) {
+				pid_t pid = getpid();
+				char* mypid = (char *)malloc(sizeof(int));
+				sprintf(mypid, "%d", pid);
+				strcpy(p, mypid);
+				free(mypid);
+			}
 		}
 		
 		//if last argument was a &, will turn process into background process
@@ -145,7 +159,6 @@ int main(int argc, char* argv[]) {
 
 		//if there were no arguments or the first argument started with #, will print line
 		if (arguments[0] == NULL || arguments[0][0] == '#') {
-			printf("\n");
 		}
 		
 		//will exit upon request, also freeing any memory that was malloc'd
@@ -153,6 +166,8 @@ int main(int argc, char* argv[]) {
 			for (i = 0; i < currentArgument; i++) {
 				free(arguments[i]);
 			}
+			free(outputFileName);
+			free(inputFileName);
 			exit(0);
 		}
 			
@@ -187,7 +202,7 @@ int main(int argc, char* argv[]) {
 
 				//child process that is running in foreground will terminate if sigint is received
 				if (foregroundProcess) {          
-					SIGINT_action.sa_handler = SIG_DFL;
+					SIGINT_action.sa_handler = catchSIGINT;
 					sigaction(SIGINT, &SIGINT_action, NULL);
 				}
 
@@ -259,17 +274,7 @@ int main(int argc, char* argv[]) {
 						close(outputFile);
 					}
 				}
-
-				//will go through arguments array and change $$ into process id
-				for (i = 0; i < currentArgument; i++) {
-					if (strcmp(arguments[i], "$$") == 0) {
-						pid_t parent_pid = getppid();
-						char* mypid = (char *)malloc(sizeof(int));
-						sprintf(mypid, "%d", parent_pid);
-						strcpy(arguments[i], mypid);
-						free(mypid);
-					}
-				}
+				
 
 				//if execvp fails, will return a negative one and alert the user
 				if (execvp(arguments[0], arguments) < 0) {
@@ -283,6 +288,9 @@ int main(int argc, char* argv[]) {
 			default:
 				if (foregroundProcess) {
 					waitpid(cpid, &childExitMethod, 0);
+					if (!WIFEXITED(childExitMethod)) {
+						showStatus(childExitMethod);
+					}
 					break;
 				}
 
