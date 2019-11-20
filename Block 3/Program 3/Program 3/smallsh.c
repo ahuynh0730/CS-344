@@ -104,7 +104,6 @@ int main(int argc, char* argv[]) {
 		parsedInput = strtok(userInput, " ");
 			
 		//will loop through each space separated text and place in arguments
-		//will loop through each space separated text and place in arguments
 		while (parsedInput != NULL) {
 			//if < was detected, indicating an input file will be next 
 			if (strcmp(parsedInput, "<") == 0) {
