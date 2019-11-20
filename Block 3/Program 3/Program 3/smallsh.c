@@ -25,7 +25,7 @@ int main(int argc, char* argv[]) {
 	char* arguments[MAX_ARGUMENTS];
 	int currentArgument = 0;
 	pid_t cpid;
-	int status = 0;
+	int childExitMethod = 0;
 	char* inputFileName = NULL;
 	char* outputFileName = NULL;
 	int outputFile = 0;
@@ -104,7 +104,15 @@ int main(int argc, char* argv[]) {
 
 		//prints either exit status or the terminating signal of the last foreground process
 		else if (strcmp(arguments[0], "status") == 0) {
-			;
+
+			//code from slides
+			if (WIFEXITED(childExitMethod)){
+				int exitStatus = WEXITSTATUS(childExitMethod);
+				printf("exit value %d\n", exitStatus);
+			}
+			else {
+				printf("Child terminated by a signal\n");
+			}
 		}
 
 		//all other commands that are not built in
@@ -115,7 +123,7 @@ int main(int argc, char* argv[]) {
 			//if something went wrong during fork
 			case -1:
 				perror("Hull breach!");
-				status = 1;
+				childExitMethod = 1;
 				break;
 
 			//if the process is the child process
@@ -126,7 +134,8 @@ int main(int argc, char* argv[]) {
 					
 					inputFile = open(inputFileName, O_RDONLY);
 					if (inputFile == -1) {
-						perror("open input file error");
+						printf("cannot open %s for input\n", inputFileName);
+						fflush(stdout);
 						_Exit(1);
 					}
 
@@ -158,7 +167,7 @@ int main(int argc, char* argv[]) {
 
 				//if execvp fails, will return a negative one and alert the user
 				if (execvp(arguments[0], arguments) < 0) {
-					printf("Sorry, %s is not a valid command.\n", arguments[0]);
+					printf("%s: no such file or directory\n", arguments[0]);
 					fflush(stdout);
 					_Exit(1);
 				}
@@ -166,19 +175,11 @@ int main(int argc, char* argv[]) {
 
 			//if the process is the parent
 			default:
-				waitpid(cpid, &status, 0);
+				waitpid(cpid, &childExitMethod, 0);
 				break;
 			}
 		}
 			
-		/*
-		for (i = 0; i < currentArgument; i++) {
-			printf("Argument %d: %s", i + 1, arguments[i]);
-			if (i != currentArgument - 1) {
-				printf("\n");
-			}
-		}
-		*/
 			
 
 		//frees all memory malloc'd and sets currentArguments to 0 before prompting for more input
