@@ -5,6 +5,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 int main(int argc, char* argv[]) {
 	
@@ -26,6 +27,7 @@ int main(int argc, char* argv[]) {
 	//increments by 1 to account for newline char
 	lengthOfKey++;
 	key = malloc(lengthOfKey * sizeof(char));
+	memset(key, '\0', lengthOfKey);
 	
 	//loop that will create a new random number and convert to ASCII char each iteration
 	for (i = 0; i < lengthOfKey - 1 ; i++){
