@@ -45,6 +45,7 @@ int main(int argc, char* argv[]) {
 	key[lengthOfKey - 1] = '\n';
 	
 	fprintf(stdout, "%s", key);
+	free(key);
 	
 	return 0;	
 }
