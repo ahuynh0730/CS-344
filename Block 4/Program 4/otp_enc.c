@@ -40,7 +40,7 @@ void sendFile (char* fileName, int socketFD, int length){
 	
 	while ((length = fread(buffer, sizeof(char), BUFFER_SIZE, file)) > 0){
 		if ((numberBytes = send(socketFD, buffer, length, 0)) < 0){
-			
+			break;
 		}
 		memset(buffer, '\0', sizeof(buffer));
 	}
