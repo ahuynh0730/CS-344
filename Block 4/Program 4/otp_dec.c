@@ -15,6 +15,7 @@
 #include <fcntl.h>
 
 #define BUFFER_SIZE 71000
+#define SEND_AT_ONE_TIME 500
 
 // Error function used for reporting issues
 void error(const char *msg) {
@@ -28,22 +29,33 @@ int fileLength(char* file){
 	fseek(filePointer, 0, SEEK_END);
 	int fileLength = ftell(filePointer);
 	fclose(filePointer);
-	return fileLength - 1;
+	return fileLength;
 }
 
 //sends file to server
 void sendFile (char* fileName, int socketFD, int length){
-	FILE* file = fopen(fileName, "r");
+FILE* file = fopen(fileName, "r");
 	char buffer[BUFFER_SIZE];
 	memset(buffer, '\0', sizeof(buffer));
-	int numberBytes;
+	int charsSent;
+	char* bufferPointer = buffer;
 	
-	while ((length = fread(buffer, sizeof(char), BUFFER_SIZE, file)) > 0){
-		if ((numberBytes = send(socketFD, buffer, length, 0)) < 0){
-			
-		}
-		memset(buffer, '\0', sizeof(buffer));
+	//places file content in buffer
+	fgets(buffer, BUFFER_SIZE, file);
+
+	//sends length of file
+	send(socketFD, &length, sizeof(int), 0);
+	
+	//will keep looping while length is greater than what is set to being sent at once
+	while (length > SEND_AT_ONE_TIME){
+		send(socketFD, bufferPointer, SEND_AT_ONE_TIME, 0);
+		length -= SEND_AT_ONE_TIME;
+		bufferPointer += SEND_AT_ONE_TIME;
 	}
+	
+	//sends remaining chars
+	send(socketFD, bufferPointer, length, 0);
+	
 	fclose(file);
 	return;
 }
@@ -56,6 +68,7 @@ int main(int argc, char *argv[])
 	int key = 0;
 	int keyLength = 0;
 	int validFile = 0;
+	int value = 1;
 	struct sockaddr_in serverAddress;
 	struct hostent* serverHostInfo;
 	char buffer[BUFFER_SIZE];
@@ -126,10 +139,10 @@ int main(int argc, char *argv[])
 		error("Wrong daemon usage\n");
 	}
 
+	setsockopt(socketFD, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(int));
 	
 	
-	
-	
+	//sends the two files
 	sendFile(argv[1], socketFD, encodedTextLength);
 	sendFile(argv[2], socketFD, keyLength);
 	

@@ -12,6 +12,7 @@
 #include <netinet/in.h>
 
 #define BUFFER_SIZE 71000
+#define SENT_AT_ONE_TIME 500
 
 // Error function used for reporting issues
 void error(const char *msg) { 
@@ -59,12 +60,32 @@ void encryptMessage(char message[], char key[], int length){
 	}
 }
 
+//reads specified number of chars into buffer
+void readIntoBuffer(char buffer[], int establishedConnectionFD, int charsToRead){
+	int keepReading = 1;
+	int charsRead = 0;
+	int totalChars = 0;
+	int i = 0;
+	char* bufferPointer = buffer;
+	
+	//printf("Needs to read %d chars\n", charsToRead);
+	while (charsToRead > SENT_AT_ONE_TIME){
+		read(establishedConnectionFD, bufferPointer, SENT_AT_ONE_TIME);
+		bufferPointer += SENT_AT_ONE_TIME;
+		charsToRead -= SENT_AT_ONE_TIME;
+		//printf("%d chars remaining to read\n", charsToRead);
+	}
+	//printf("about to read final %d chars\n", charsToRead);
+	read(establishedConnectionFD, bufferPointer, charsToRead);
+}
+
 int main(int argc, char *argv[])
 {
 
 	int listenSocketFD, establishedConnectionFD, portNumber, charsRead;
 	char buffer[BUFFER_SIZE];
-	int numberChars = sizeof(buffer);
+	int numberChars = BUFFER_SIZE;
+	int totalChars;
 	socklen_t sizeOfClientInfo;
 	struct sockaddr_in serverAddress, clientAddress;
 	pid_t pid;
@@ -112,9 +133,13 @@ int main(int argc, char *argv[])
 		else if (pid == 0){
 			memset(buffer, '\0', sizeof(buffer));
 			int i=0;
+			char message[BUFFER_SIZE];
 			char key[BUFFER_SIZE];
-			
-			
+			totalChars = 0;
+			charsRead = 0;
+			int keepReading = 1;
+			int charsToRead = 0;
+			char* bufferPointer = buffer;
 			
 			//will authenticate that otp_enc called this daemon
 			read(establishedConnectionFD, buffer, sizeof(buffer) - 1);
@@ -125,15 +150,23 @@ int main(int argc, char *argv[])
 				write(establishedConnectionFD, encodeAuthentication, sizeof(encodeAuthentication));
 			}
 			
+			//clear buffer and read how many chars will be sent, then read into buffer and copy to message
 			memset(buffer, '\0', sizeof(buffer));
+			read(establishedConnectionFD, &charsToRead, sizeof(int));
+			readIntoBuffer(buffer, establishedConnectionFD, charsToRead);
+			memset(message, '\0', sizeof(message));
+			strcpy(message, buffer);
+			
+			//clear buffer and read how many chars will be sent, then read into buffer and copy to key
+			memset(buffer, '\0', sizeof(buffer));
+			read(establishedConnectionFD, &charsToRead, sizeof(int));
+			readIntoBuffer(buffer, establishedConnectionFD, charsToRead);
 			memset(key, '\0', sizeof(key));
-			
-			
-			read(establishedConnectionFD, buffer, numberChars);
-			read(establishedConnectionFD, key, numberChars);
-			
-			encryptMessage(buffer, key, strlen(buffer));
-			write(establishedConnectionFD, buffer, numberChars);
+			strcpy(key, buffer);
+
+			//encrypts the messages and sends over to client
+			encryptMessage(message, key, strlen(message));
+			write(establishedConnectionFD, message, strlen(message));
 		}
 		close(establishedConnectionFD); // Close the existing socket which is connected to the client
 
@@ -144,11 +177,3 @@ int main(int argc, char *argv[])
 	return 0; 
 }
 
-
-/*
-	char message[BUFFER_SIZE];
-			memset(message, '\0', sizeof(buffer));
-			strncpy(message, buffer, (strlen(buffer) / 2));
-			encryptMessage(message, key, strlen(message));
-			write(establishedConnectionFD, message, sizeof(message));
-			*/
