@@ -12,7 +12,7 @@
 #include <netinet/in.h>
 
 #define BUFFER_SIZE 71000
-#define SENT_AT_ONE_TIME 500
+#define SENT_AT_ONE_TIME 1000
 
 // Error function used for reporting issues
 void error(const char *msg) { 

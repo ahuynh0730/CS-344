@@ -15,7 +15,7 @@
 #include <fcntl.h>
 
 #define BUFFER_SIZE 71000
-#define SEND_AT_ONE_TIME 500
+#define SEND_AT_ONE_TIME 1000
 // Error function used for reporting issues
 void error(const char *msg) {
 	fprintf(stderr, msg);
