@@ -16,6 +16,7 @@
 
 #define BUFFER_SIZE 71000
 #define SEND_AT_ONE_TIME 1000
+
 // Error function used for reporting issues
 void error(const char *msg) {
 	fprintf(stderr, msg);
@@ -33,7 +34,7 @@ int fileLength(char* file){
 
 //sends file to server
 void sendFile (char* fileName, int socketFD, int length){
-	FILE* file = fopen(fileName, "r");
+FILE* file = fopen(fileName, "r");
 	char buffer[BUFFER_SIZE];
 	memset(buffer, '\0', sizeof(buffer));
 	int charsSent;
@@ -41,7 +42,7 @@ void sendFile (char* fileName, int socketFD, int length){
 	
 	//places file content in buffer
 	fgets(buffer, BUFFER_SIZE, file);
-	
+
 	//sends length of file
 	send(socketFD, &length, sizeof(int), 0);
 	
@@ -49,7 +50,6 @@ void sendFile (char* fileName, int socketFD, int length){
 	while (length > SEND_AT_ONE_TIME){
 		send(socketFD, bufferPointer, SEND_AT_ONE_TIME, 0);
 		length -= SEND_AT_ONE_TIME;
-		//printf("chars remaining to send: %d\n", length);
 		bufferPointer += SEND_AT_ONE_TIME;
 	}
 	
@@ -63,18 +63,16 @@ void sendFile (char* fileName, int socketFD, int length){
 int main(int argc, char *argv[])
 {
 	int socketFD, portNumber;
-	int uncodedText = 0;
-	int uncodedTextLength = 0;
+	int encodedText = 0;
+	int encodedTextLength = 0;
 	int key = 0;
 	int keyLength = 0;
 	int validFile = 0;
+	int value = 1;
 	struct sockaddr_in serverAddress;
 	struct hostent* serverHostInfo;
 	char buffer[BUFFER_SIZE];
-	char encodeAuthentication[6] = "encode";
-	int value = 0;
-	char* bufferPointer;
-	int charsLeft;
+	char decodeAuthentication[6] = "decode";
     
 	// Check usage & args
 	if (argc != 4) { 
@@ -82,14 +80,14 @@ int main(int argc, char *argv[])
 	}
 	
 	// Opening uncoded text and key and getting their length
-	uncodedText = open(argv[1], O_RDONLY);
-	uncodedTextLength = fileLength(argv[1]);
+	encodedText = open(argv[1], O_RDONLY);
+	encodedTextLength = fileLength(argv[1]);
 	key = open(argv[2], O_RDONLY);
 	keyLength = fileLength(argv[2]);
 	
 	
 	//will exit if key and text are not same length
-	if (keyLength < uncodedTextLength){
+	if (keyLength < encodedTextLength){
 		error("key is too short\n");
 	}
 	
@@ -112,7 +110,6 @@ int main(int argc, char *argv[])
 	
 	
 
-	
 	// Set up the server address struct
 	memset((char*)&serverAddress, '\0', sizeof(serverAddress)); // Clear out the address struct
 	portNumber = atoi(argv[3]); // Get the port number, convert to an integer from a string
@@ -134,35 +131,27 @@ int main(int argc, char *argv[])
 		error("CLIENT: ERROR connecting");
 
 	//makes sure is connecting with enc_d
-	write(socketFD, encodeAuthentication, sizeof(encodeAuthentication));
+	write(socketFD, decodeAuthentication, sizeof(decodeAuthentication));
 	read(socketFD, buffer, sizeof(buffer));
 	
 	//authenticate that the right connection is formed
-	if(strcmp(buffer, "encode") != 0){
+	if(strcmp(buffer, "decode") != 0){
 		error("Wrong daemon usage\n");
 	}
-	
+
 	setsockopt(socketFD, SOL_SOCKET, SO_REUSEADDR, &value, sizeof(int));
 	
 	
 	//sends the two files
-	sendFile(argv[1], socketFD, uncodedTextLength);
+	sendFile(argv[1], socketFD, encodedTextLength);
 	sendFile(argv[2], socketFD, keyLength);
 	
-	//clears buffer and reads over encrypted data, which it then writes to the screen
 	memset(buffer, '\0', sizeof(buffer));
-	bufferPointer = buffer;
-	read(socketFD, &charsLeft, sizeof(int));
-	while(charsLeft > SEND_AT_ONE_TIME){
-		if (read(socketFD, bufferPointer, SEND_AT_ONE_TIME) < 0){
-			error("Error from reading socket\n");
-		}
-		bufferPointer += SEND_AT_ONE_TIME;
-		charsLeft -= SEND_AT_ONE_TIME;
+	if (read(socketFD, buffer, sizeof(buffer) - 1) < 0){
+		error("Error from reading socket\n");
 	}
-	read(socketFD, bufferPointer, charsLeft);
-	
 	printf("%s", buffer);
+
 	close(socketFD); // Close the socket
 	return 0;
 }

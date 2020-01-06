@@ -1,0 +1,1 @@
+Text4 works intermittently, both for grading script and manually. 

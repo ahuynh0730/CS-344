@@ -88,6 +88,7 @@ int main(int argc, char *argv[])
 	pid_t pid;
 	char decodeAuthentication[6] = "decode";
 	int newLine = 0;
+	int charsLeft;
 
 	// Check usage & args
 	if (argc != 2){ 
@@ -153,6 +154,7 @@ int main(int argc, char *argv[])
 			readIntoBuffer(buffer, establishedConnectionFD, charsToRead);
 			memset(message, '\0', sizeof(message));
 			strcpy(message, buffer);
+
 			
 			//clear buffer and read how many chars will be sent, then read into buffer and copy to key
 			memset(buffer, '\0', sizeof(buffer));
@@ -161,9 +163,18 @@ int main(int argc, char *argv[])
 			memset(key, '\0', sizeof(key));
 			strcpy(key, buffer);
 
+
 			//decrypts the messages and sends over to client
 			decryptMessage(message, key, strlen(message));
-			write(establishedConnectionFD, message, strlen(message));
+			bufferPointer = message;
+			charsLeft = strlen(message);
+			send(establishedConnectionFD, &charsLeft, sizeof(int), 0);
+			while (charsLeft > SENT_AT_ONE_TIME){
+				send(establishedConnectionFD, bufferPointer, SENT_AT_ONE_TIME, 0);
+				charsLeft -= SENT_AT_ONE_TIME;
+				bufferPointer += SENT_AT_ONE_TIME;
+			}
+			send(establishedConnectionFD, bufferPointer, charsLeft, 0);
 		}
 		close(establishedConnectionFD); // Close the existing socket which is connected to the client
 

@@ -91,7 +91,6 @@ int main(int argc, char *argv[])
 	pid_t pid;
 	char encodeAuthentication[6] = "encode";
 	int newLine = 0;
-	int charsLeft;
 
 	// Check usage & args
 	if (argc != 2){ 
@@ -167,15 +166,7 @@ int main(int argc, char *argv[])
 
 			//encrypts the messages and sends over to client
 			encryptMessage(message, key, strlen(message));
-			bufferPointer = message;
-			charsLeft = strlen(message);
-			send(establishedConnectionFD, &charsLeft, sizeof(int), 0);
-			while (charsLeft > SENT_AT_ONE_TIME){
-				send(establishedConnectionFD, bufferPointer, SENT_AT_ONE_TIME, 0);
-				charsLeft -= SENT_AT_ONE_TIME;
-				bufferPointer += SENT_AT_ONE_TIME;
-			}
-			send(establishedConnectionFD, bufferPointer, charsLeft, 0);
+			write(establishedConnectionFD, message, strlen(message));
 		}
 		close(establishedConnectionFD); // Close the existing socket which is connected to the client
 

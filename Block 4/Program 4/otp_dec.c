@@ -42,7 +42,7 @@ FILE* file = fopen(fileName, "r");
 	
 	//places file content in buffer
 	fgets(buffer, BUFFER_SIZE, file);
-
+	
 	//sends length of file
 	send(socketFD, &length, sizeof(int), 0);
 	
@@ -73,6 +73,8 @@ int main(int argc, char *argv[])
 	struct hostent* serverHostInfo;
 	char buffer[BUFFER_SIZE];
 	char decodeAuthentication[6] = "decode";
+	char* bufferPointer;
+	int charsLeft;
     
 	// Check usage & args
 	if (argc != 4) { 
@@ -147,9 +149,16 @@ int main(int argc, char *argv[])
 	sendFile(argv[2], socketFD, keyLength);
 	
 	memset(buffer, '\0', sizeof(buffer));
-	if (read(socketFD, buffer, sizeof(buffer) - 1) < 0){
-		error("Error from reading socket\n");
+	bufferPointer = buffer;
+	read(socketFD, &charsLeft, sizeof(int));
+	while(charsLeft > SEND_AT_ONE_TIME){
+		if (read(socketFD, bufferPointer, SEND_AT_ONE_TIME) < 0){
+			error("Error from reading socket\n");
+		}
+		bufferPointer += SEND_AT_ONE_TIME;
+		charsLeft -= SEND_AT_ONE_TIME;
 	}
+	read(socketFD, bufferPointer, charsLeft);
 	printf("%s", buffer);
 
 	close(socketFD); // Close the socket

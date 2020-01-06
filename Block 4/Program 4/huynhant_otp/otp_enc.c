@@ -42,6 +42,9 @@ void sendFile (char* fileName, int socketFD, int length){
 	//places file content in buffer
 	fgets(buffer, BUFFER_SIZE, file);
 	
+	
+	//printf("chars to be sent: %d\n", length);
+	
 	//sends length of file
 	send(socketFD, &length, sizeof(int), 0);
 	
@@ -54,6 +57,7 @@ void sendFile (char* fileName, int socketFD, int length){
 	}
 	
 	//sends remaining chars
+	//printf("about to send last %d chars\n", length);
 	send(socketFD, bufferPointer, length, 0);
 	
 	fclose(file);
@@ -73,8 +77,6 @@ int main(int argc, char *argv[])
 	char buffer[BUFFER_SIZE];
 	char encodeAuthentication[6] = "encode";
 	int value = 0;
-	char* bufferPointer;
-	int charsLeft;
     
 	// Check usage & args
 	if (argc != 4) { 
@@ -151,17 +153,9 @@ int main(int argc, char *argv[])
 	
 	//clears buffer and reads over encrypted data, which it then writes to the screen
 	memset(buffer, '\0', sizeof(buffer));
-	bufferPointer = buffer;
-	read(socketFD, &charsLeft, sizeof(int));
-	while(charsLeft > SEND_AT_ONE_TIME){
-		if (read(socketFD, bufferPointer, SEND_AT_ONE_TIME) < 0){
-			error("Error from reading socket\n");
-		}
-		bufferPointer += SEND_AT_ONE_TIME;
-		charsLeft -= SEND_AT_ONE_TIME;
+	if (read(socketFD, buffer, sizeof(buffer) - 1) < 0){
+		error("Error from reading socket\n");
 	}
-	read(socketFD, bufferPointer, charsLeft);
-	
 	printf("%s", buffer);
 	close(socketFD); // Close the socket
 	return 0;

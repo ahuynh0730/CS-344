@@ -13,50 +13,51 @@
 
 #define BUFFER_SIZE 71000
 #define SENT_AT_ONE_TIME 1000
-
 // Error function used for reporting issues
 void error(const char *msg) { 
 	fprintf(stderr, msg); 
 	exit(1); 
 } 
 
-//to encrypt a message
-void encryptMessage(char message[], char key[], int length){
+//to decrypt a message
+void decryptMessage(char message[], char key[], int length){
 	int i;
 	int textNumber;
 	int keyNumber;
-	int encryptedNumber;
-	length = strlen(message) - 1;
+	int unencryptedNumber;
+	length--;
 	
 	for (i = 0; i < length; i++){
-		//will convert spaces to 0
-		if (message[i] == ' '){
-			textNumber = 0;
+		textNumber = (int)(message[i]);
+		if (textNumber == 32){
+			textNumber -= 32;
 		}
-		//will subtract 64 from the ascii value to get a number between 1 and 27
-		else{
-			textNumber = (int)(message[i]) - 64;
-		}
-		
-		//will convert key to number
-		if (key[i] == ' '){
-			keyNumber = 0;
-		}
-		else{
-			keyNumber = (int)(key[i]) - 64;
+		else {
+			textNumber -= 64;
 		}
 		
-		//adds the two numbers together and mods 27
-		encryptedNumber = (textNumber + keyNumber) % 27;
+		keyNumber = (int)(key[i]);
+		if (keyNumber == 32){
+			keyNumber -= 32;
+		}
+		else {
+			keyNumber -= 64;
+		}
 		
-		//converts encrypted number to char
-		if (encryptedNumber == 0){
-			encryptedNumber += 32;
+		//subtracts ascii value of key from ascii value of text and mods 27
+		unencryptedNumber = (textNumber - keyNumber);
+		while (unencryptedNumber < 0){
+			unencryptedNumber += 27;
+		}
+		
+		//converts unencryptedNumber to ascii value
+		if(unencryptedNumber == 0){
+			unencryptedNumber += 32;
 		}
 		else{
-			encryptedNumber += 64;
+			unencryptedNumber += 64;
 		}
-		message[i] = (char)encryptedNumber;
+		message[i] = (char)unencryptedNumber;
 	}
 }
 
@@ -67,15 +68,11 @@ void readIntoBuffer(char buffer[], int establishedConnectionFD, int charsToRead)
 	int totalChars = 0;
 	int i = 0;
 	char* bufferPointer = buffer;
-	
-	//printf("Needs to read %d chars\n", charsToRead);
 	while (charsToRead > SENT_AT_ONE_TIME){
 		read(establishedConnectionFD, bufferPointer, SENT_AT_ONE_TIME);
 		bufferPointer += SENT_AT_ONE_TIME;
 		charsToRead -= SENT_AT_ONE_TIME;
-		//printf("%d chars remaining to read\n", charsToRead);
 	}
-	//printf("about to read final %d chars\n", charsToRead);
 	read(establishedConnectionFD, bufferPointer, charsToRead);
 }
 
@@ -84,14 +81,13 @@ int main(int argc, char *argv[])
 
 	int listenSocketFD, establishedConnectionFD, portNumber, charsRead;
 	char buffer[BUFFER_SIZE];
-	int numberChars = BUFFER_SIZE;
-	int totalChars;
+	int numberChars = sizeof(buffer);
+	int totalChars = 0;
 	socklen_t sizeOfClientInfo;
 	struct sockaddr_in serverAddress, clientAddress;
 	pid_t pid;
-	char encodeAuthentication[6] = "encode";
+	char decodeAuthentication[6] = "decode";
 	int newLine = 0;
-	int charsLeft;
 
 	// Check usage & args
 	if (argc != 2){ 
@@ -142,13 +138,13 @@ int main(int argc, char *argv[])
 			int charsToRead = 0;
 			char* bufferPointer = buffer;
 			
-			//will authenticate that otp_enc called this daemon
+			//will authenticate that otp_dec called this daemon
 			read(establishedConnectionFD, buffer, sizeof(buffer) - 1);
-			if (strcmp(buffer, "encode") != 0){
+			if (strcmp(buffer, "decode") != 0){
 				error("Wrong usage of daemon\n");
 			}
 			else{
-				write(establishedConnectionFD, encodeAuthentication, sizeof(encodeAuthentication));
+				write(establishedConnectionFD, decodeAuthentication, sizeof(decodeAuthentication));
 			}
 			
 			//clear buffer and read how many chars will be sent, then read into buffer and copy to message
@@ -165,17 +161,9 @@ int main(int argc, char *argv[])
 			memset(key, '\0', sizeof(key));
 			strcpy(key, buffer);
 
-			//encrypts the messages and sends over to client
-			encryptMessage(message, key, strlen(message));
-			bufferPointer = message;
-			charsLeft = strlen(message);
-			send(establishedConnectionFD, &charsLeft, sizeof(int), 0);
-			while (charsLeft > SENT_AT_ONE_TIME){
-				send(establishedConnectionFD, bufferPointer, SENT_AT_ONE_TIME, 0);
-				charsLeft -= SENT_AT_ONE_TIME;
-				bufferPointer += SENT_AT_ONE_TIME;
-			}
-			send(establishedConnectionFD, bufferPointer, charsLeft, 0);
+			//decrypts the messages and sends over to client
+			decryptMessage(message, key, strlen(message));
+			write(establishedConnectionFD, message, strlen(message));
 		}
 		close(establishedConnectionFD); // Close the existing socket which is connected to the client
 
@@ -185,4 +173,5 @@ int main(int argc, char *argv[])
 	close(listenSocketFD); // Close the listening socket
 	return 0; 
 }
+
 
